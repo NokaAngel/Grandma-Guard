@@ -1,0 +1,57 @@
+name: Validate browser packages
+
+on:
+  push:
+    branches:
+      - main
+      - "codex/**"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and test all browsers
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Build Chrome, Firefox, and Opera
+        shell: powershell
+        run: .\tools\Build-Release.ps1 -Browser All
+
+      - name: Build source archive
+        shell: powershell
+        run: .\tools\Build-Source-Archive.ps1
+
+      - name: Run Mozilla package review
+        shell: powershell
+        run: |
+          $version = (
+            Get-Content -Raw extension\manifest.firefox.json |
+              ConvertFrom-Json
+          ).version
+          Expand-Archive `
+            -LiteralPath "dist\Grandma-Guard-Firefox-$version.zip" `
+            -DestinationPath .firefox-lint
+          npx --yes web-ext@10.5.0 lint `
+            --source-dir .firefox-lint `
+            --warnings-as-errors
+
+      - name: Upload verified packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: grandma-guard-packages
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 14

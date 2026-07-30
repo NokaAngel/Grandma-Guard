@@ -1,55 +1,110 @@
 [CmdletBinding()]
 param(
-  [string]$NodeExecutable = "node"
+  [string]$NodeExecutable = "node",
+
+  [ValidateSet("All", "Chrome", "Firefox", "Opera")]
+  [string]$Browser = "All"
 )
 
 $ErrorActionPreference = "Stop"
-$releaseRoot = Split-Path -Parent $PSScriptRoot
-$sourceRoot = Join-Path $releaseRoot "source"
-$firefoxManifestPath = Join-Path $releaseRoot "firefox\manifest.json"
+$projectRoot = Split-Path -Parent $PSScriptRoot
+$extensionRoot = Join-Path $projectRoot "extension"
+$chromiumManifestPath = Join-Path $extensionRoot "manifest.chromium.json"
+$firefoxManifestPath = Join-Path $extensionRoot "manifest.firefox.json"
+$outputRoot = Join-Path $projectRoot "dist"
+$stagingRoot = Join-Path $projectRoot ".build"
 $expectedFirefoxId = "{3ae9a4ff-604c-44be-a41f-139571f7446f}"
-$browsers = @("chrome", "firefox", "opera")
-$version = "1.0.0"
+$version = (
+  Get-Content -Raw -LiteralPath $chromiumManifestPath |
+    ConvertFrom-Json
+).version
+
+$browserDefinitions = @(
+  @{
+    Name = "chrome"
+    Title = "Chrome"
+    ManifestPath = $chromiumManifestPath
+  },
+  @{
+    Name = "firefox"
+    Title = "Firefox"
+    ManifestPath = $firefoxManifestPath
+  },
+  @{
+    Name = "opera"
+    Title = "Opera"
+    ManifestPath = $chromiumManifestPath
+  }
+)
 
 function Get-RelativePath([string]$BasePath, [string]$FullPath) {
   return $FullPath.Substring($BasePath.Length + 1)
 }
 
-function Assert-FirefoxManifest {
-  $manifest = Get-Content -Raw -LiteralPath $firefoxManifestPath | ConvertFrom-Json
+function Assert-BrowserManifest(
+  [string]$BrowserName,
+  [string]$ManifestPath
+) {
+  $manifest = Get-Content -Raw -LiteralPath $ManifestPath |
+    ConvertFrom-Json
+
+  if ($manifest.version -ne $version -or $manifest.manifest_version -ne 3) {
+    throw "$BrowserName source manifest has an unexpected version."
+  }
+
+  if ($BrowserName -ne "Firefox") {
+    if ($manifest.background.service_worker -ne "background.js") {
+      throw "The Chromium service worker configuration changed."
+    }
+    return
+  }
+
   if ($manifest.browser_specific_settings.gecko.id -ne $expectedFirefoxId) {
-    throw "Firefox stable extension ID changed."
+    throw "The Firefox stable extension ID changed."
   }
-  if (($manifest.browser_specific_settings.gecko.data_collection_permissions.required -join ",") -ne "none") {
-    throw "Firefox no-data-collection declaration changed."
-  }
-}
-
-function Sync-BrowserFolder([string]$Browser) {
-  $browserRoot = Join-Path $releaseRoot $Browser
-  $preservedManifest = if ($Browser -eq "firefox") {
-    [System.IO.File]::ReadAllBytes((Join-Path $browserRoot "manifest.json"))
-  } else {
-    $null
-  }
-
-  Get-ChildItem -LiteralPath $browserRoot -Recurse -File | Remove-Item -Force
-  Get-ChildItem -LiteralPath $sourceRoot -Recurse -File | ForEach-Object {
-    $relativePath = Get-RelativePath $sourceRoot $_.FullName
-    $destination = Join-Path $browserRoot $relativePath
-    $destinationDirectory = Split-Path -Parent $destination
-    New-Item -ItemType Directory -Path $destinationDirectory -Force | Out-Null
-    Copy-Item -LiteralPath $_.FullName -Destination $destination -Force
-  }
-
-  if ($Browser -eq "firefox") {
-    [System.IO.File]::WriteAllBytes((Join-Path $browserRoot "manifest.json"), $preservedManifest)
+  if (
+    (
+      $manifest.browser_specific_settings.gecko.
+        data_collection_permissions.required -join ","
+    ) -ne "none"
+  ) {
+    throw "The Firefox no-data-collection declaration changed."
   }
 }
 
-function Test-ManifestAssets([string]$Browser) {
-  $browserRoot = Join-Path $releaseRoot $Browser
-  $manifest = Get-Content -Raw -LiteralPath (Join-Path $browserRoot "manifest.json") | ConvertFrom-Json
+function New-BrowserStage(
+  [string]$Browser,
+  [string]$ManifestPath
+) {
+  $browserRoot = Join-Path $stagingRoot $Browser
+  New-Item -ItemType Directory -Path $browserRoot -Force | Out-Null
+
+  Get-ChildItem -LiteralPath $extensionRoot -Recurse -File |
+    Where-Object {
+      $_.Name -notin @("manifest.chromium.json", "manifest.firefox.json")
+    } |
+    ForEach-Object {
+      $relativePath = Get-RelativePath $extensionRoot $_.FullName
+      $destination = Join-Path $browserRoot $relativePath
+      $destinationDirectory = Split-Path -Parent $destination
+      New-Item -ItemType Directory -Path $destinationDirectory -Force |
+        Out-Null
+      Copy-Item -LiteralPath $_.FullName -Destination $destination -Force
+    }
+
+  Copy-Item -LiteralPath $ManifestPath `
+    -Destination (Join-Path $browserRoot "manifest.json") -Force
+  return $browserRoot
+}
+
+function Test-ManifestAssets(
+  [string]$Browser,
+  [string]$BrowserRoot
+) {
+  $manifest = Get-Content -Raw `
+    -LiteralPath (Join-Path $BrowserRoot "manifest.json") |
+    ConvertFrom-Json
+
   if ($manifest.version -ne $version -or $manifest.manifest_version -ne 3) {
     throw "$Browser manifest version is unexpected."
   }
@@ -57,17 +112,24 @@ function Test-ManifestAssets([string]$Browser) {
   $iconPaths = @($manifest.icons.PSObject.Properties.Value)
   $iconPaths += @($manifest.action.default_icon.PSObject.Properties.Value)
   foreach ($iconPath in $iconPaths | Sort-Object -Unique) {
-    if (-not (Test-Path -LiteralPath (Join-Path $browserRoot $iconPath))) {
+    if (-not (Test-Path -LiteralPath (Join-Path $BrowserRoot $iconPath))) {
       throw "$Browser manifest references missing asset $iconPath."
     }
   }
 }
 
-function Test-Package([string]$Browser, [string]$ArchivePath) {
+function Test-Package(
+  [string]$Browser,
+  [string]$BrowserRoot,
+  [string]$ArchivePath
+) {
   Add-Type -AssemblyName System.IO.Compression.FileSystem
   $archive = [System.IO.Compression.ZipFile]::OpenRead($ArchivePath)
   try {
-    $entries = @($archive.Entries | Where-Object { -not $_.FullName.EndsWith("/") })
+    $entries = @(
+      $archive.Entries |
+        Where-Object { -not $_.FullName.EndsWith("/") }
+    )
     if ($entries.FullName -match "\\") {
       throw "$Browser package contains a Windows path separator."
     }
@@ -78,37 +140,47 @@ function Test-Package([string]$Browser, [string]$ArchivePath) {
       throw "$Browser package contains stale icon files."
     }
 
-    $browserRoot = Join-Path $releaseRoot $Browser
-    $diskFiles = @(Get-ChildItem -LiteralPath $browserRoot -Recurse -File)
+    $diskFiles = @(Get-ChildItem -LiteralPath $BrowserRoot -Recurse -File)
     if ($entries.Count -ne $diskFiles.Count) {
-      throw "$Browser package file count does not match its browser folder."
+      throw "$Browser package file count does not match its build stage."
     }
 
-    $expectedNames = @($diskFiles | ForEach-Object {
-      (Get-RelativePath $browserRoot $_.FullName).Replace("\", "/")
-    })
-    $nameDifferences = @(Compare-Object -ReferenceObject $expectedNames -DifferenceObject $entries.FullName)
+    $expectedNames = @(
+      $diskFiles |
+        ForEach-Object {
+          (Get-RelativePath $BrowserRoot $_.FullName).Replace("\", "/")
+        }
+    )
+    $nameDifferences = @(
+      Compare-Object `
+        -ReferenceObject $expectedNames `
+        -DifferenceObject $entries.FullName
+    )
     if ($nameDifferences.Count -ne 0) {
-      throw "$Browser package paths do not match its browser folder."
+      throw "$Browser package paths do not match its build stage."
     }
   } finally {
     $archive.Dispose()
   }
 }
 
-function New-ReleaseArchive([string]$Browser, [string]$ArchivePath) {
+function New-ReleaseArchive(
+  [string]$BrowserRoot,
+  [string]$ArchivePath
+) {
   Add-Type -AssemblyName System.IO.Compression
   Add-Type -AssemblyName System.IO.Compression.FileSystem
-  $browserRoot = Join-Path $releaseRoot $Browser
   $archive = [System.IO.Compression.ZipFile]::Open(
     $ArchivePath,
     [System.IO.Compression.ZipArchiveMode]::Create
   )
   try {
-    Get-ChildItem -LiteralPath $browserRoot -Recurse -File |
+    Get-ChildItem -LiteralPath $BrowserRoot -Recurse -File |
       Sort-Object FullName |
       ForEach-Object {
-        $entryName = (Get-RelativePath $browserRoot $_.FullName).Replace("\", "/")
+        $entryName = (
+          Get-RelativePath $BrowserRoot $_.FullName
+        ).Replace("\", "/")
         [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
           $archive,
           $_.FullName,
@@ -121,15 +193,27 @@ function New-ReleaseArchive([string]$Browser, [string]$ArchivePath) {
   }
 }
 
-Assert-FirefoxManifest
-
-foreach ($browser in $browsers) {
-  Sync-BrowserFolder $browser
+$selectedBrowserDefinitions = if ($Browser -eq "All") {
+  @($browserDefinitions)
+} else {
+  @(
+    $browserDefinitions |
+      Where-Object { $_.Title -eq $Browser }
+  )
 }
 
-Assert-FirefoxManifest
+if ($selectedBrowserDefinitions.Count -eq 0) {
+  throw "No browser definition matched $Browser."
+}
 
-$javascriptFiles = Get-ChildItem -LiteralPath $sourceRoot -Filter *.js -File
+foreach ($definition in $selectedBrowserDefinitions) {
+  Assert-BrowserManifest $definition.Title $definition.ManifestPath
+}
+
+$javascriptFiles = Get-ChildItem `
+  -LiteralPath $extensionRoot `
+  -Filter *.js `
+  -File
 foreach ($javascriptFile in $javascriptFiles) {
   & $NodeExecutable --check $javascriptFile.FullName
   if ($LASTEXITCODE -ne 0) {
@@ -137,28 +221,60 @@ foreach ($javascriptFile in $javascriptFiles) {
   }
 }
 
-& $NodeExecutable (Join-Path $releaseRoot "tests\detection-engine.test.mjs")
+& $NodeExecutable (Join-Path $projectRoot "tests\detection-engine.test.mjs")
 if ($LASTEXITCODE -ne 0) {
   throw "Detection regression tests failed."
 }
 
 $textExtensions = @(".js", ".html", ".css", ".json", ".md", ".ps1", ".mjs")
-Get-ChildItem -LiteralPath $releaseRoot -Recurse -File |
-  Where-Object { $_.Extension -in $textExtensions } |
+Get-ChildItem -LiteralPath $projectRoot -Recurse -File |
+  Where-Object {
+    $_.Extension -in $textExtensions -and
+    -not $_.FullName.StartsWith($stagingRoot)
+  } |
   ForEach-Object {
     if ((Get-Content -Raw -LiteralPath $_.FullName).Contains([char]0x2014)) {
-      throw "Em dash found in $(Get-RelativePath $releaseRoot $_.FullName)."
+      throw "Em dash found in $(Get-RelativePath $projectRoot $_.FullName)."
     }
   }
 
-foreach ($browser in $browsers) {
-  Test-ManifestAssets $browser
-  $titleBrowser = (Get-Culture).TextInfo.ToTitleCase($browser)
-  $archivePath = Join-Path $releaseRoot "Grandma-Guard-$titleBrowser-$version.zip"
-  if (Test-Path -LiteralPath $archivePath) {
-    Remove-Item -LiteralPath $archivePath -Force
-  }
-  New-ReleaseArchive $browser $archivePath
-  Test-Package $browser $archivePath
-  Write-Host "Built and validated $(Split-Path -Leaf $archivePath)"
+New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
+
+$resolvedProjectRoot = [System.IO.Path]::GetFullPath($projectRoot)
+$resolvedStagingRoot = [System.IO.Path]::GetFullPath($stagingRoot)
+if (
+  (Split-Path -Parent $resolvedStagingRoot) -ne $resolvedProjectRoot -or
+  (Split-Path -Leaf $resolvedStagingRoot) -ne ".build"
+) {
+  throw "Refusing to use an unexpected build staging path."
 }
+
+if (Test-Path -LiteralPath $stagingRoot) {
+  Remove-Item -LiteralPath $stagingRoot -Recurse -Force
+}
+New-Item -ItemType Directory -Path $stagingRoot | Out-Null
+
+try {
+  foreach ($definition in $selectedBrowserDefinitions) {
+    $browserRoot = New-BrowserStage `
+      $definition.Name `
+      $definition.ManifestPath
+    Test-ManifestAssets $definition.Title $browserRoot
+
+    $archivePath = Join-Path $outputRoot (
+      "Grandma-Guard-$($definition.Title)-$version.zip"
+    )
+    if (Test-Path -LiteralPath $archivePath) {
+      Remove-Item -LiteralPath $archivePath -Force
+    }
+    New-ReleaseArchive $browserRoot $archivePath
+    Test-Package $definition.Title $browserRoot $archivePath
+    Write-Host "Built and validated $(Split-Path -Leaf $archivePath)"
+  }
+} finally {
+  if (Test-Path -LiteralPath $stagingRoot) {
+    Remove-Item -LiteralPath $stagingRoot -Recurse -Force
+  }
+}
+
+Write-Host "Completed build target: $Browser"
