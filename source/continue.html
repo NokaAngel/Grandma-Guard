@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Continue to a suspicious page?</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="blocked-page continue-page">
+  <main class="card" aria-labelledby="confirmation-title">
+    <div class="shield danger" aria-hidden="true">!</div>
+    <p class="eyebrow danger-text">One-time exception</p>
+    <h1 id="confirmation-title">Are you sure you want to open it?</h1>
+    <p class="lead">Grandma Guard found multiple signs of a fake virus or tech-support page at <strong id="hostname">this website</strong>.</p>
+    <div class="warning" id="exception-advice">
+      Continuing does not mark this website as trusted. It permits this exact address once. Never install anything, call a displayed phone number, or enter a password or payment information.
+    </div>
+    <div class="actions stacked-actions">
+      <button id="closeTab" type="button">Close this tab instead</button>
+      <button id="confirmContinue" class="danger-button" type="button" aria-describedby="exception-advice unlockStatus" disabled>I understand. Open it once</button>
+    </div>
+    <p id="unlockStatus" class="countdown" aria-live="polite">Please wait 5 seconds before the one-time Continue option becomes available.</p>
+    <p id="countdown" class="countdown" aria-live="polite">This tab will close automatically in 30 seconds.</p>
+  </main>
+  <script src="continue.js"></script>
+</body>
+</html>

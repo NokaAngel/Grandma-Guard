@@ -1,0 +1,61 @@
+{
+  "manifest_version": 3,
+  "name": "Grandma Guard",
+  "version": "1.0.0",
+  "description": "Stops high-confidence fake virus, tech-support, notification-bait, phishing, and forced-update pages.",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "detection-engine.js",
+        "detector.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "icons": {
+    "16": "icons/logo-v2-16.png",
+    "32": "icons/logo-v2-32.png",
+    "48": "icons/logo-v2-48.png",
+    "128": "icons/logo-v2-128.png"
+  },
+  "action": {
+    "default_title": "Grandma Guard",
+    "default_icon": {
+      "16": "icons/logo-v2-16.png",
+      "32": "icons/logo-v2-32.png",
+      "48": "icons/logo-v2-48.png"
+    }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{3ae9a4ff-604c-44be-a41f-139571f7446f}",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    }
+  }
+}
