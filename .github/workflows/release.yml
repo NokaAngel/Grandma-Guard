@@ -1,0 +1,235 @@
+name: Publish browser release
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build release packages
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out released source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Verify release tag
+        shell: powershell
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          $releaseVersion = $env:RELEASE_TAG.TrimStart("v")
+          $chromiumVersion = (
+            Get-Content -Raw extension\manifest.chromium.json |
+              ConvertFrom-Json
+          ).version
+          $firefoxVersion = (
+            Get-Content -Raw extension\manifest.firefox.json |
+              ConvertFrom-Json
+          ).version
+          if (
+            $releaseVersion -ne $chromiumVersion -or
+            $releaseVersion -ne $firefoxVersion
+          ) {
+            throw "Release tag and manifest versions do not match."
+          }
+
+      - name: Build Chrome, Firefox, and Opera
+        shell: powershell
+        run: .\tools\Build-Release.ps1 -Browser All
+
+      - name: Build source archive
+        shell: powershell
+        run: .\tools\Build-Source-Archive.ps1
+
+      - name: Run Mozilla package review
+        shell: powershell
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          $version = $env:RELEASE_TAG.TrimStart("v")
+          Expand-Archive `
+            -LiteralPath "dist\Grandma-Guard-Firefox-$version.zip" `
+            -DestinationPath .firefox-lint
+          npx --yes web-ext@10.5.0 lint `
+            --source-dir .firefox-lint `
+            --warnings-as-errors
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: grandma-guard-release
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  attach:
+    name: Attach packages to GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download verified packages
+        uses: actions/download-artifact@v4
+        with:
+          name: grandma-guard-release
+          path: dist
+
+      - name: Attach packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" dist/*.zip --clobber
+
+  chrome:
+    name: Submit Chrome update
+    if: vars.CHROME_AUTO_PUBLISH == 'true'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: browser-stores
+
+    steps:
+      - name: Download verified packages
+        uses: actions/download-artifact@v4
+        with:
+          name: grandma-guard-release
+          path: dist
+
+      - name: Authenticate Chrome service account
+        id: google-auth
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.CHROME_SERVICE_ACCOUNT_JSON }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
+
+      - name: Upload and submit Chrome package
+        shell: bash
+        env:
+          ACCESS_TOKEN: ${{ steps.google-auth.outputs.access_token }}
+          PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
+          EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$PUBLISHER_ID"
+          test -n "$EXTENSION_ID"
+
+          package="$(find dist -maxdepth 1 -name 'Grandma-Guard-Chrome-*.zip' -print -quit)"
+          test -n "$package"
+          item="publishers/${PUBLISHER_ID}/items/${EXTENSION_ID}"
+
+          curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -X POST \
+            -T "$package" \
+            "https://chromewebstore.googleapis.com/upload/v2/${item}:upload" \
+            > upload-response.json
+
+          state="$(jq -r '.uploadState // empty' upload-response.json)"
+          for attempt in $(seq 1 30); do
+            if [ "$state" != "IN_PROGRESS" ]; then
+              break
+            fi
+            sleep 10
+            curl --fail-with-body --silent --show-error \
+              -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+              "https://chromewebstore.googleapis.com/v2/${item}:fetchStatus" \
+              > status-response.json
+            state="$(jq -r '.lastAsyncUploadState // empty' status-response.json)"
+          done
+
+          if [ "$state" != "SUCCEEDED" ]; then
+            echo "Chrome package upload did not succeed. State: $state"
+            exit 1
+          fi
+
+          curl --fail-with-body --silent --show-error \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d '{"publishType":"DEFAULT_PUBLISH","blockOnWarnings":true}' \
+            "https://chromewebstore.googleapis.com/v2/${item}:publish" \
+            > publish-response.json
+
+          jq '{itemId, state, warningInfo}' publish-response.json
+
+  firefox:
+    name: Submit Firefox update
+    if: vars.FIREFOX_AUTO_PUBLISH == 'true'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: browser-stores
+
+    steps:
+      - name: Check out release metadata
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Download verified packages
+        uses: actions/download-artifact@v4
+        with:
+          name: grandma-guard-release
+          path: dist
+
+      - name: Prepare Firefox source
+        shell: bash
+        run: |
+          set -euo pipefail
+          package="$(find dist -maxdepth 1 -name 'Grandma-Guard-Firefox-*.zip' -print -quit)"
+          test -n "$package"
+          mkdir firefox-source
+          unzip -q "$package" -d firefox-source
+
+      - name: Submit listed Firefox update
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_API_SECRET }}
+        run: >
+          npx --yes web-ext@10.5.0 sign
+          --source-dir firefox-source
+          --artifacts-dir signed
+          --channel listed
+          --approval-timeout 0
+          --amo-metadata docs/amo-metadata.json
+          --no-input
+
+  opera:
+    name: Prepare Opera handoff
+    needs:
+      - build
+      - attach
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Record manual Opera step
+        env:
+          RELEASE_URL: ${{ github.event.release.html_url }}
+        run: |
+          {
+            echo "## Opera package ready"
+            echo
+            echo "Download the Opera ZIP from [this GitHub Release](${RELEASE_URL})"
+            echo "and upload it through Opera's signed-in extension submission form."
+          } >> "$GITHUB_STEP_SUMMARY"

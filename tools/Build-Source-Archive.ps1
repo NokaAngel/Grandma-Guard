@@ -3,28 +3,30 @@ param()
 
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$version = "1.0.0"
-$archivePath = Join-Path $projectRoot "Grandma-Guard-GitHub-Source-$version.zip"
+$outputRoot = Join-Path $projectRoot "dist"
+$version = (
+  Get-Content -Raw -LiteralPath (
+    Join-Path $projectRoot "extension\manifest.chromium.json"
+  ) |
+    ConvertFrom-Json
+).version
+$archivePath = Join-Path $outputRoot (
+  "Grandma-Guard-GitHub-Source-$version.zip"
+)
 
 $includedFiles = @(
+  ".gitattributes",
   ".gitignore",
   "BUILDING.md",
-  "CHROME_PRIVACY_POLICY.md",
   "LICENSE",
-  "OPERA_PRIVACY_POLICY.md",
-  "PRIVACY_POLICY.md",
-  "README.md",
-  "STORE_LISTING.md",
-  "STORE_SUBMISSION_GUIDE.md"
+  "README.md"
 )
 
 $includedDirectories = @(
-  "branding",
-  "chrome",
-  "firefox",
-  "opera",
-  "source",
-  "store-assets",
+  ".github",
+  "assets",
+  "docs",
+  "extension",
   "tests",
   "tools"
 )
@@ -71,6 +73,7 @@ foreach ($file in $allFiles | Where-Object { $_.Extension -in $textExtensions })
   }
 }
 
+New-Item -ItemType Directory -Path $outputRoot -Force | Out-Null
 if (Test-Path -LiteralPath $archivePath) {
   Remove-Item -LiteralPath $archivePath -Force
 }
@@ -101,8 +104,8 @@ try {
   if ($entryNames -match "\\") {
     throw "The source archive contains a Windows path separator."
   }
-  if ($entryNames -match "(?i)(^|/)(\.git|node_modules)(/|$)") {
-    throw "The source archive contains excluded repository or dependency data."
+  if ($entryNames -match "(?i)(^|/)(\.git|node_modules|dist)(/|$)") {
+    throw "The source archive contains excluded generated or dependency data."
   }
   if ($entryNames -match "(?i)\.zip$") {
     throw "The source archive contains a nested ZIP file."
@@ -110,10 +113,13 @@ try {
   foreach ($requiredEntry in @(
     "LICENSE",
     "BUILDING.md",
-    "source/detection-engine.js",
-    "chrome/manifest.json",
-    "firefox/manifest.json",
-    "opera/manifest.json",
+    ".github/workflows/ci.yml",
+    ".github/workflows/release.yml",
+    "docs/DEPLOYMENT.md",
+    "docs/FIREFOX_RELEASE_NOTES.md",
+    "extension/detection-engine.js",
+    "extension/manifest.chromium.json",
+    "extension/manifest.firefox.json",
     "tests/detection-engine.test.mjs",
     "tools/Build-Release.ps1"
   )) {
@@ -126,4 +132,3 @@ try {
 }
 
 Write-Host "Built and validated $(Split-Path -Leaf $archivePath)"
-

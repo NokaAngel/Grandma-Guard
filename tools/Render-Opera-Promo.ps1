@@ -5,8 +5,8 @@ $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.Drawing
 
 $releaseRoot = Split-Path -Parent $PSScriptRoot
-$logoPath = Join-Path $releaseRoot "branding\grandma-guard-logo.png"
-$outputPath = Join-Path $releaseRoot "store-assets\opera-promo-300x188.png"
+$logoPath = Join-Path $releaseRoot "assets\branding\grandma-guard-logo.png"
+$outputPath = Join-Path $releaseRoot "assets\store\opera-promo-300x188.png"
 
 function New-RoundedRectanglePath(
   [System.Drawing.RectangleF]$Rectangle,

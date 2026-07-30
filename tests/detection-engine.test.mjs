@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import "../source/detection-engine.js";
+import "../extension/detection-engine.js";
 
 const { analyze } = globalThis.GrandmaGuardDetection;
 

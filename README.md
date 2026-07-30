@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="branding/grandma-guard-logo-512.png" alt="Grandma Guard logo" width="180">
+  <img src="assets/branding/grandma-guard-logo-512.png" alt="Grandma Guard logo" width="180">
 </p>
 
 <h1 align="center">Grandma Guard</h1>
@@ -15,6 +15,9 @@
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-0B7A67" alt="MIT License">
+  </a>
+  <a href="https://github.com/NokaAngel/Grandma-Guard/actions/workflows/ci.yml">
+    <img src="https://github.com/NokaAngel/Grandma-Guard/actions/workflows/ci.yml/badge.svg" alt="Build status">
   </a>
   <img src="https://img.shields.io/badge/Manifest-V3-334155" alt="Manifest V3">
   <img src="https://img.shields.io/badge/Privacy-Local%20only-0B7A67" alt="Local-only privacy">
@@ -41,11 +44,24 @@ browser-based scams.
 | Browser | Status | Install or package |
 | --- | --- | --- |
 | Firefox | Published | [Install from Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/grandma-guard/) |
-| Chrome | Package ready | `Grandma-Guard-Chrome-1.0.0.zip` |
-| Opera | Package ready | `Grandma-Guard-Opera-1.0.0.zip` |
+| Chrome | Release package | [Download from GitHub Releases](https://github.com/NokaAngel/Grandma-Guard/releases) |
+| Opera | Release package | [Download from GitHub Releases](https://github.com/NokaAngel/Grandma-Guard/releases) |
 
-Chrome and Opera store packages are included with the release files. Firefox
-uses its own Manifest V3 background configuration and stable add-on ID.
+Every GitHub Release includes verified Chrome, Firefox, and Opera packages plus
+a complete source archive. Firefox uses its own Manifest V3 background
+configuration and stable add-on ID.
+
+## What's new in 1.0.1
+
+Version 1.0.1 is a maintenance and transparency release:
+
+- Provides the complete readable source under the MIT License
+- Adds reproducible build and package-validation instructions
+- Aligns the Chrome, Firefox, and Opera source trees
+- Keeps the same browser permissions and privacy behavior
+- Adds no telemetry, remote code, or data collection
+
+Detection behavior is unchanged from version 1.0.0.
 
 ## What it can detect
 
@@ -76,7 +92,7 @@ requires a second confirmation and a five-second pause. If confirmed, it opens
 only the exact address once and does not permanently trust the website.
 
 <p align="center">
-  <img src="store-assets/store-screenshot-1280x800.png" alt="Grandma Guard warning page showing why a suspicious website was stopped" width="900">
+  <img src="assets/store/store-screenshot-1280x800.png" alt="Grandma Guard warning page showing why a suspicious website was stopped" width="900">
 </p>
 
 ## Privacy by design
@@ -95,7 +111,7 @@ The extension stores up to 100 blocked hostnames with timestamps and detection
 reasons. An exact blocked address is kept only briefly when needed for the
 one-time Continue flow.
 
-Read the full [privacy policy](PRIVACY_POLICY.md).
+Read the full [privacy policy](docs/privacy/PRIVACY_POLICY.md).
 
 ## Security design
 
@@ -116,16 +132,15 @@ system, browser, and trusted security software updated.
 
 ```text
 GrandmaGuard/
-|-- source/        Shared Chrome and Opera extension source
-|-- chrome/        Complete Chrome package contents
-|-- firefox/       Complete Firefox package contents
-|-- opera/         Complete Opera package contents
-|-- tests/         Detection-engine regression tests
-|-- tools/         Release and source-archive scripts
-|-- branding/      Project logos
-|-- store-assets/  Browser-store artwork
-|-- BUILDING.md    Reproducible build instructions
-`-- LICENSE        MIT License
+|-- extension/  One shared source tree and two browser manifests
+|-- assets/     Project branding and browser-store artwork
+|-- docs/       Submission notes, listing copy, and privacy policies
+|-- tests/      Detection-engine regression tests
+|-- tools/      Release and source-archive scripts
+|-- .github/    Validation and browser-store release automation
+|-- dist/       Generated packages, ignored by Git
+|-- BUILDING.md Reproducible build instructions
+`-- LICENSE     MIT License
 ```
 
 ## Build and test
@@ -143,27 +158,49 @@ From the repository root:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
-.\tools\Build-Release.ps1
+.\tools\Build-Release.ps1 -Browser All
 ```
+
+Use `-Browser Chrome`, `-Browser Firefox`, or `-Browser Opera` to build only
+one package. Omitting `-Browser` builds all three.
 
 The release builder:
 
-1. Synchronizes the shared source into all three browser folders.
-2. Preserves and validates Firefox's browser-specific manifest.
+1. Creates temporary Chrome, Firefox, and Opera staging folders.
+2. Applies the appropriate Chromium or Firefox manifest.
 3. Checks every JavaScript file for syntax errors.
 4. Runs 25 detection regression cases.
 5. Validates manifest assets and archive paths.
 6. Rejects stale assets, development files, and em dashes.
-7. Rebuilds and inspects the Chrome, Firefox, and Opera ZIP files.
+7. Writes the verified browser ZIPs to `dist`.
+8. Removes the temporary staging folders automatically.
 
 See [BUILDING.md](BUILDING.md) for complete build and source-archive
 instructions.
 
+## Automated releases
+
+Normal pushes and pull requests build and validate all three browser packages.
+Publishing a GitHub Release with a matching version tag, such as `v1.0.1`,
+then:
+
+1. Rebuilds Chrome, Firefox, Opera, and source archives from the tagged code.
+2. Attaches all four verified ZIP files to the GitHub Release.
+3. Submits the Chrome package when Chrome publishing is enabled.
+4. Submits the Firefox package to AMO when Firefox publishing is enabled.
+5. Leaves the Opera package on the release for its required manual store upload.
+
+Store credentials are kept in GitHub's encrypted `browser-stores` environment
+and are never committed to the repository. See
+[Automated browser-store deployment](docs/DEPLOYMENT.md) for the one-time
+setup and release checklist.
+
 ## Reviewing or contributing
 
 The core detection logic is in
-[`source/detection-engine.js`](source/detection-engine.js). Browser page
-collection is handled by [`source/detector.js`](source/detector.js), and the
+[`extension/detection-engine.js`](extension/detection-engine.js). Browser page
+collection is handled by
+[`extension/detector.js`](extension/detector.js), and the
 regression scenarios are in
 [`tests/detection-engine.test.mjs`](tests/detection-engine.test.mjs).
 
