@@ -1,10 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Grandma Guard",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Stops high-confidence fake virus, tech-support, notification-bait, phishing, and forced-update pages.",
   "permissions": [
-    "storage"
+    "storage",
+    "webNavigation"
   ],
   "host_permissions": [
     "http://*/*",
@@ -12,6 +13,7 @@
   ],
   "background": {
     "scripts": [
+      "detection-engine.js",
       "background.js"
     ]
   },
@@ -23,10 +25,44 @@
       ],
       "js": [
         "detection-engine.js",
-        "detector.js"
+        "detector.js",
+        "trap-guard.js",
+        "link-guard.js"
       ],
       "run_at": "document_start",
       "all_frames": false
+    },
+    {
+      "matches": [
+        "https://mail.google.com/*",
+        "https://outlook.live.com/*",
+        "https://outlook.office.com/*",
+        "https://outlook.office365.com/*",
+        "https://mail.proton.me/*",
+        "https://mail.protonmail.com/*",
+        "https://mail.yahoo.com/*",
+        "https://mail.yahoo.com/b/*",
+        "https://mail.yahoo.com/neo/*",
+        "https://*.mail.yahoo.com/*",
+        "https://*.mail.yahoo.com/neo/*",
+        "https://mail.aol.com/*",
+        "https://outlook.aol.com/*",
+        "https://www.icloud.com/mail/*",
+        "https://icloud.com/mail/*",
+        "https://mail.zoho.com/*",
+        "https://mail.zoho.eu/*",
+        "https://app.fastmail.com/*",
+        "https://www.fastmail.com/*",
+        "https://mail.tutanota.com/*",
+        "https://app.tuta.com/*"
+      ],
+      "js": [
+        "detection-engine.js",
+        "mail-guard.js",
+        "link-guard.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
     }
   ],
   "options_ui": {
@@ -41,6 +77,7 @@
   },
   "action": {
     "default_title": "Grandma Guard",
+    "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/logo-v2-16.png",
       "32": "icons/logo-v2-32.png",

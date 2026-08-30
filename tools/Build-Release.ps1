@@ -2,7 +2,7 @@
 param(
   [string]$NodeExecutable = "node",
 
-  [ValidateSet("All", "Chrome", "Firefox", "Opera")]
+  [ValidateSet("All", "Chrome", "Firefox")]
   [string]$Browser = "All"
 )
 
@@ -29,11 +29,6 @@ $browserDefinitions = @(
     Name = "firefox"
     Title = "Firefox"
     ManifestPath = $firefoxManifestPath
-  },
-  @{
-    Name = "opera"
-    Title = "Opera"
-    ManifestPath = $chromiumManifestPath
   }
 )
 

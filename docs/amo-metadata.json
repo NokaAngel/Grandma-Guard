@@ -1,8 +1,8 @@
 {
   "version": {
     "release_notes": {
-      "en-US": "Version 1.0.1 improves project transparency and release packaging. It adds the complete readable MIT-licensed source, reproducible build instructions, verified Chrome, Firefox, and Opera packages, and current Firefox compatibility declarations for Mozilla's built-in no-data setting. Detection behavior, permissions, and privacy behavior are unchanged."
+      "en-US": "Version 2.0.0 adds a toolbar popup dashboard, Grandma preset, navigation blocking for family blocklists, bundled scam-host patterns, smishing detection, Fastmail and Tutanota support, email scam tips, tel/sms/javascript link guards, and auto after-scam protection on Continue. Still no telemetry or remote code."
     },
-    "approval_notes": "Grandma Guard uses plain, readable JavaScript, HTML, CSS, JSON, and PNG files. It has no bundler, minifier, generated runtime code, third-party libraries, telemetry, remote code, or data collection. The repository release workflow reproduces the submitted package and runs all 25 detection regression cases."
+    "approval_notes": "2.0.0: Toolbar popup, Grandma preset, webNavigation blocklist guard, bundled bad hosts, smishing, Fastmail/Tutanota, email tips, tel/sms/javascript guards. Submitted ZIP is readable unminified source; Build-Release.ps1 -Browser Firefox copies extension/, selects manifest.firefox.json, validates, and zips. No test credentials. Use any supported webmail session for inbox features. Support: https://nokaangel.dev/support?project=grandmaguard"
   }
 }

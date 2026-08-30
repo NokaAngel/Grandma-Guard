@@ -44,7 +44,7 @@ jobs:
             throw "Release tag and manifest versions do not match."
           }
 
-      - name: Build Chrome, Firefox, and Opera
+      - name: Build Chrome and Firefox
         shell: powershell
         run: .\tools\Build-Release.ps1 -Browser All
 
@@ -213,23 +213,3 @@ jobs:
           --approval-timeout 0
           --amo-metadata docs/amo-metadata.json
           --no-input
-
-  opera:
-    name: Prepare Opera handoff
-    needs:
-      - build
-      - attach
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: Record manual Opera step
-        env:
-          RELEASE_URL: ${{ github.event.release.html_url }}
-        run: |
-          {
-            echo "## Opera package ready"
-            echo
-            echo "Download the Opera ZIP from [this GitHub Release](${RELEASE_URL})"
-            echo "and upload it through Opera's signed-in extension submission form."
-          } >> "$GITHUB_STEP_SUMMARY"

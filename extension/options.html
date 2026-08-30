@@ -3,23 +3,198 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Grandma Guard detection history</title>
+  <title>Grandma Guard settings</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="options-page">
   <main class="options-shell" aria-labelledby="history-title">
-    <header>
-      <div>
-        <p class="eyebrow">Grandma Guard</p>
-        <h1 id="history-title">Scareware detection history</h1>
-        <p>Only suspicious hostnames and matched reasons are kept locally. Normal browsing history is not recorded or transmitted. Clearing history also removes pending one-time exceptions.</p>
+    <header class="options-hero">
+      <div class="options-brand">
+        <img class="options-logo" src="icons/logo-v2-128.png" alt="">
+        <div>
+          <p class="options-brand-name">Grandma Guard</p>
+          <p class="options-tagline">Family protection for a safer web</p>
+        </div>
+      </div>
+      <div class="options-hero-copy">
+        <h1 id="history-title">Protection settings</h1>
+        <p>Only suspicious hostnames and matched reasons are kept locally. Normal browsing history is not recorded or transmitted.</p>
       </div>
       <button id="clearHistory" class="secondary" type="button">Clear history</button>
     </header>
+
+    <section id="versionNotice" class="options-panel" hidden aria-labelledby="version-title">
+      <h2 id="version-title">What's new</h2>
+      <p id="versionNoticeText">This update includes privacy and learning changes.</p>
+      <p class="options-meta">Read the updated <a href="https://grandmaguard.nokaangel.dev/privacy/" target="_blank" rel="noopener noreferrer">privacy policy</a>.</p>
+      <button id="ackVersion" class="secondary" type="button">Got it</button>
+    </section>
+
+    <section class="options-panel" aria-labelledby="family-title">
+      <h2 id="family-title" class="options-heading-with-icon">
+        <svg class="section-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M8.5 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3zm7 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3zM8.5 12.5c-2.7 0-5 1.5-5 3.4V18h10v-2.1c0-1.9-2.3-3.4-5-3.4zm7 0c-.4 0-.8 0-1.2.1 1.2.7 2 1.8 2 3.2V18H21v-2.1c0-1.9-2.3-3.4-5.5-3.4z"/>
+        </svg>
+        Family protection
+      </h2>
+      <p>Choose how careful Grandma Guard should be on this device.</p>
+
+      <div class="preset-row">
+        <button id="applyGrandmaPreset" type="button">Apply Grandma preset</button>
+      </div>
+      <p class="options-meta">Turns on Extra careful, Shopping mode, email learning, and auto after-scam protection. You can still set a caregiver PIN separately.</p>
+
+      <fieldset class="options-fieldset protection-cards">
+        <legend class="visually-hidden">Protection level</legend>
+        <label class="protection-card">
+          <input id="protectionStandard" name="protectionLevel" type="radio" value="standard" checked>
+          <span class="protection-card-body">
+            <svg class="protection-card-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M12 2.8 4.5 6v5.3c0 4.7 3.1 9 7.5 10.2 4.4-1.2 7.5-5.5 7.5-10.2V6L12 2.8zm-1.1 12.4-2.8-2.8 1.3-1.3 1.5 1.5 3.7-3.7 1.3 1.3-5 5z"/>
+            </svg>
+            <span class="protection-card-copy">
+              <strong>Standard</strong>
+              <span>High-confidence blocks only</span>
+            </span>
+          </span>
+        </label>
+        <label class="protection-card">
+          <input id="protectionCareful" name="protectionLevel" type="radio" value="careful">
+          <span class="protection-card-body">
+            <svg class="protection-card-icon outline" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M12 3.2 5.5 6.2v5.1c0 4.2 2.8 7.9 6.5 9 3.7-1.1 6.5-4.8 6.5-9V6.2L12 3.2z"/>
+              <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M12 9v6M9 12h6"/>
+            </svg>
+            <span class="protection-card-copy">
+              <strong>Extra careful</strong>
+              <span>Catch more borderline scare pages and emails</span>
+            </span>
+          </span>
+        </label>
+      </fieldset>
+
+      <h3 class="options-subtitle options-heading-with-icon">
+        <svg class="section-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <ellipse cx="12" cy="12" rx="3.6" ry="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M3.2 12h17.6M5.2 7.2h13.6M5.2 16.8h13.6"/>
+        </svg>
+        Trusted websites
+      </h3>
+      <p class="options-meta">Add a hostname such as <code>example.com</code>. Grandma Guard will not block that site or its subdomains.</p>
+      <div class="options-row trusted-row">
+        <label class="trusted-input">
+          <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <ellipse cx="12" cy="12" rx="3.6" ry="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M3.2 12h17.6M5.2 7.2h13.6M5.2 16.8h13.6"/>
+          </svg>
+          <input id="trustedHostInput" type="text" placeholder="example.com" autocomplete="off" spellcheck="false">
+        </label>
+        <button id="addTrustedHost" type="button">+ Add</button>
+      </div>
+      <ul id="trustedHostList" class="trusted-list" aria-live="polite"></ul>
+      <p id="trustedHostEmpty" class="options-meta">No trusted websites yet.</p>
+
+      <h3 class="options-subtitle">Family blocklist</h3>
+      <p class="options-meta">Add hostnames that should never use Continue on this device, even with a PIN.</p>
+      <div class="options-row trusted-row">
+        <label class="trusted-input">
+          <input id="blockedHostInput" type="text" placeholder="scam-example.com" autocomplete="off" spellcheck="false">
+        </label>
+        <button id="addBlockedHost" type="button">+ Block</button>
+      </div>
+      <ul id="blockedHostList" class="trusted-list" aria-live="polite"></ul>
+      <p id="blockedHostEmpty" class="options-meta">No blocked websites yet.</p>
+
+      <h3 class="options-subtitle">Strict mode</h3>
+      <p class="options-meta">Require a caregiver PIN before anyone can use Continue on a blocked page.</p>
+      <label class="options-toggle">
+        <input id="strictModeEnabled" type="checkbox">
+        <span>Require caregiver PIN to continue</span>
+      </label>
+      <div class="options-row trusted-row">
+        <label class="trusted-input">
+          <input id="caregiverPinInput" type="password" inputmode="numeric" autocomplete="new-password" maxlength="12" placeholder="Set a 4+ digit PIN">
+        </label>
+        <button id="saveCaregiverPin" type="button">Save PIN</button>
+      </div>
+      <p id="strictModeStatus" class="options-meta">Strict mode is off.</p>
+
+      <h3 class="options-subtitle">Shopping mode</h3>
+      <p class="options-meta">Adds extra scrutiny on checkout, payment, and gift-card pages.</p>
+      <label class="options-toggle">
+        <input id="shoppingModeEnabled" type="checkbox">
+        <span>Extra scrutiny on checkout pages</span>
+      </label>
+
+      <h3 class="options-subtitle">After-scam protection</h3>
+      <p class="options-meta">Turn on stronger protection for 48 hours after a suspicious incident.</p>
+      <button id="activateAfterScam" class="secondary" type="button">Turn on 48-hour extra protection</button>
+      <p id="afterScamStatus" class="options-meta">After-scam protection is off.</p>
+      <label class="options-toggle">
+        <input id="autoAfterScamOnContinue" type="checkbox" checked>
+        <span>Automatically turn on after-scam protection when someone uses Continue</span>
+      </label>
+
+      <h3 class="options-subtitle">Remembered suspicious link domains</h3>
+      <p class="options-meta">Domains learned from blocked suspicious links on this device.</p>
+      <ul id="learnedBadLinkList" class="trusted-list" aria-live="polite"></ul>
+      <p id="learnedBadLinkEmpty" class="options-meta">No suspicious link domains remembered yet.</p>
+    </section>
+
+    <section class="options-panel" aria-labelledby="summary-title">
+      <h2 id="summary-title">This week on this device</h2>
+      <p class="options-meta">A simple local summary for families. Nothing is uploaded.</p>
+      <div id="weeklySummary" class="summary-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="options-panel" aria-labelledby="backup-title">
+      <h2 id="backup-title">Backup and restore</h2>
+      <p class="options-meta">Export trusted sites, blocklist, and on-device email learning to a JSON file. PINs are never included.</p>
+      <div class="options-row">
+        <button id="exportSettings" type="button">Export settings</button>
+        <label class="secondary file-button">
+          Import settings
+          <input id="importSettings" type="file" accept="application/json,.json" hidden>
+        </label>
+      </div>
+      <p id="backupStatus" class="options-meta"></p>
+    </section>
+
+    <section class="options-panel" aria-labelledby="learning-title">
+      <h2 id="learning-title">On-device email learning</h2>
+      <p>When allowed, Grandma Guard can remember short scam patterns from flagged emails on this device only - including sender labels and custom From domains - and you can mark mistakes as <strong>Not a scam</strong> inside an open email (with undo). Nothing is uploaded.</p>
+      <p class="options-meta">Read the full details in our <a id="privacyPolicyLink" href="https://grandmaguard.nokaangel.dev/privacy/" target="_blank" rel="noopener noreferrer">privacy policy</a>.</p>
+      <label class="options-toggle">
+        <input id="localMailLearningEnabled" type="checkbox">
+        <span>Allow on-device email learning</span>
+      </label>
+      <p id="learnedSummary" class="options-meta">On-device email learning is off until you allow it.</p>
+      <button id="clearLearned" class="secondary" type="button">Clear learned email patterns</button>
+    </section>
+
+    <section class="options-panel options-donate" aria-labelledby="donate-title">
+      <div class="donate-row">
+        <svg class="donate-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M4.5 9.5h11.2v8.2a2.4 2.4 0 0 1-2.4 2.4H6.9a2.4 2.4 0 0 1-2.4-2.4V9.5z"/>
+          <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M15.7 11.2h2.1a2.4 2.4 0 0 1 0 4.8h-2.1"/>
+          <path fill="#c45c26" d="M10.1 8.2c-.9-.9-2.3-.7-2.9.2-.7 1 .1 2.3 1.4 3.3 1.1-.8 2.3-1.8 2.3-3 0-.2 0-.4-.1-.5h-.7zm1.6 0h-.7c-.1.1-.1.3-.1.5 0 1.2 1.2 2.2 2.3 3 1.3-1 2.1-2.3 1.4-3.3-.6-.9-2-.9-2.9 0z"/>
+        </svg>
+        <div>
+          <h2 id="donate-title">Enjoying Grandma Guard?</h2>
+          <p>Support development with a coffee on <a href="https://ko-fi.com/nokaangel" target="_blank" rel="noopener noreferrer">Ko-fi</a>.</p>
+        </div>
+        <a class="donate-button" href="https://ko-fi.com/nokaangel" target="_blank" rel="noopener noreferrer">Donate on Ko-fi</a>
+      </div>
+    </section>
+
+    <h2 class="options-section-title">Detection history</h2>
     <div id="emptyState" class="empty">No suspicious pages have been stopped.</div>
     <div id="events" class="events" aria-live="polite"></div>
     <p id="historyStatus" class="visually-hidden" aria-live="polite"></p>
   </main>
+  <script src="detection-engine.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

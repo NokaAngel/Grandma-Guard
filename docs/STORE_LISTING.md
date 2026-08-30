@@ -14,12 +14,6 @@
 
 **Summary:** Calm, local protection from fake virus alerts, notification traps, forced updates, phishing, and tech-support scams.
 
-### Opera Add-ons
-
-**Title:** Grandma Guard
-
-**Short description:** Calm, local protection from fake virus alerts, notification traps, forced updates, phishing, and tech-support scams.
-
 ## Name
 
 Grandma Guard
@@ -30,30 +24,47 @@ Calm, local protection from fake virus alerts, notification traps, forced update
 
 ## Full description
 
-Grandma Guard helps protect people from deceptive pages that pretend a computer is infected, damaged, locked, or out of date; pressure the visitor to call fake support; or demand that browser notifications be allowed to continue.
+Grandma Guard helps protect families and less technical computer users from deceptive browser pages designed to create panic.
 
-The extension evaluates pages locally using multiple independent signals, including threat claims, coercive actions, permission traps, impersonation language, overlays, and page behavior. A scary phrase by itself is not enough. Article structure, bylines, quotations, code samples, editorial wording, and official vendor domains help suppress false alarms on news reports and legitimate security guidance.
+It watches for fake virus warnings, notification permission traps, fake CAPTCHA prompts, tech-support phone scams, suspicious downloads, forced browser updates, account-lock messages, full-screen scare pages, and brand impersonation such as fake shopping, payment, or bank login pages.
 
-When a high-confidence page is detected, Grandma Guard stops interaction and shows a calm explanation. The tab closes automatically after 30 seconds. A two-step, delayed Continue option can open the exact address once without permanently trusting the site.
+Grandma Guard analyzes visible page signals locally inside the browser. It looks for combinations of suspicious claims, pressure tactics, page behavior, and hostname characteristics. It also considers article structure, quotations, bylines, and official support websites to reduce false alarms.
 
-Features:
+When confidence is high, Grandma Guard replaces the suspicious page with a calm warning and provides a safe way to close the tab. A delayed one-time Continue option is available if a legitimate page is blocked. It applies only to the exact address and never permanently trusts the website.
 
-- Context-aware, multi-signal fake-alert detection
-- Protection against fake virus scans, tech-support scams, notification bait, account-lock phishing, and forced updates
-- False-positive safeguards for articles, guides, quotes, and official sites
-- One-time Continue option with a second confirmation and delay
-- Local blocked-page history that the user can clear
-- No accounts, ads, analytics, remote configuration, or transmitted browsing data
+On Gmail, Outlook, Proton, Yahoo, and AOL webmail, Grandma Guard can mark suspicious messages and links with Possible scam highlights and hover reasons without replacing the inbox. Optional on-device email learning is off until you allow it. If enabled, short scam-pattern fingerprints stay on this device only, and you can mark mistakes as Not a scam with a short undo window.
 
-Grandma Guard is a browser safety aid, not an antivirus. Keep your operating system, browser, and trusted security software updated.
+Family protection settings let you choose Standard or Extra careful mode and keep a trusted websites list on this device.
+
+Grandma Guard has no account, advertising, analytics, telemetry, remote configuration, or developer-operated server. Page content, browsing activity, and email content are not transmitted.
+
+Opera users: there is no separate Opera listing. Install Grandma Guard from the Chrome Web Store in Opera.
+
+## Developer comments
+
+### Known limitations
+
+Grandma Guard is a browser safety aid, not an antivirus. It cannot guarantee that every scam will be detected, and legitimate pages may occasionally be blocked. A delayed one-time Continue option is available for false positives.
+
+Grandma Guard cannot remove browser notifications that were allowed before the extension was installed. Existing notification permissions must be removed through the browser settings.
+
+Webmail highlights depend on each provider's page layout. Some messages or list views may not be labeled until the open message or list row is visible to the extension.
+
+### Possible future direction
+
+Expand detection for emerging fake advertisements, notification scams, fake CAPTCHA pages, malicious downloads, and other deceptive campaigns.
+
+Consider optional server-assisted threat intelligence or diagnostic features in a future version.
+
+These future features are not included in version 1.3.0. Any future server communication or data collection would be disclosed before release, documented in an updated privacy policy, and provided with appropriate user controls.
 
 ## Chrome Web Store privacy fields
 
 **Single purpose:** Detect and stop high-confidence deceptive fake-alert web pages while providing a safe warning and a deliberately gated one-time override.
 
-**Storage permission justification:** Stores up to 100 blocked hostnames with timestamps and detection reasons locally, plus short-lived decision tokens needed for the one-time Continue feature. Users can clear the history. Nothing is synced or transmitted.
+**Storage permission justification:** Stores up to 100 detection events with timestamps and reasons locally, optional on-device email learning patterns when the user allows learning, Family protection settings (protection level and trusted websites), and short-lived decision tokens needed for the one-time Continue feature. Users can clear history and learned patterns. Nothing is synced or transmitted.
 
-**Host access justification:** The core feature must inspect visible text, interactive labels, page structure, hostname, and limited behavior signals on HTTP and HTTPS pages to recognize fake alerts before the user interacts with them. Analysis runs locally.
+**Host access justification:** The core feature must inspect visible text, interactive labels, page structure, hostname, and limited behavior signals on HTTP and HTTPS pages, and visible links in supported webmail pages, to recognize fake alerts before the user interacts with them. Analysis runs locally.
 
 **Remote code:** Select **No, I am not using remote code**. All JavaScript is included in the submitted package.
 
@@ -63,14 +74,20 @@ Grandma Guard is a browser safety aid, not an antivirus. Keep your operating sys
 
 ## Reviewer notes
 
-Grandma Guard has no login, payment, server, telemetry, advertising, affiliate links, remotely hosted code, or downloaded configuration. The detector runs as a content script on HTTP/HTTPS pages. A detection sends only the current address and detection result to the packaged background context, which stores limited event data in browser-local storage and navigates the same tab to the packaged warning page.
+Version 1.3.0 adds Family protection settings, trusted websites, and an optional Ko-fi donate link. Learning data and settings stay local and can be cleared in Options.
 
-The **Continue anyway** control opens a second packaged confirmation page. After five seconds, the user may allow only the original exact address once. The bypass is consumed on use and does not apply to redirects or later visits.
+The submitted ZIP is already readable unminified source. `tools/Build-Release.ps1 -Browser Firefox` only copies `extension/`, selects `manifest.firefox.json`, validates, and zips. No separate generated-source archive is needed.
 
-Select the toolbar icon to open the local detection history. No external account or test credentials are required.
+No test credentials required. Use any Gmail, Outlook, Proton, Yahoo, or AOL webmail session to exercise inbox highlights and learning prompts. Toolbar icon opens local history and Options. Support: https://nokaangel.dev/support?project=grandmaguard
 
 ## Suggested categories
 
 - Chrome Web Store: Privacy & Security
 - Firefox Add-ons: Privacy & Security
-- Opera Add-ons: Productivity (Opera's current category list does not include Security)
+
+## Store screenshots
+
+- `assets/store/store-screenshot-blocked-1280x800.png` - calm blocked-page warning
+- `assets/store/store-screenshot-gmail-scam-1280x800.png` - webmail Possible scam highlights
+- `assets/store/store-screenshot-settings-1280x800.png` - Family protection settings
+- `assets/store/chrome-promo-440x280.png` - Chrome Web Store small promo tile

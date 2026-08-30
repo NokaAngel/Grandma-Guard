@@ -1,6 +1,9 @@
 dist/
 .build/
 node_modules/
+app/config/store-status.cache.json
+GrandmaGuard Website/app/config/store-status.cache.json
 .DS_Store
 Thumbs.db
 *.log
+.cursor/

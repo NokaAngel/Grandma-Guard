@@ -4,18 +4,16 @@ Grandma Guard uses GitHub Releases as the only publishing trigger. Ordinary
 pushes and pull requests validate the project but never contact a browser
 store.
 
-When a release such as `v1.0.1` is published, GitHub:
+When a release such as `v2.0.0` is published, GitHub:
 
 1. Confirms that the release tag matches both manifest versions.
-2. Builds and validates Chrome, Firefox, and Opera packages.
+2. Builds and validates Chrome and Firefox packages.
 3. Builds the complete readable source archive.
-4. Attaches all four ZIP files to the GitHub Release.
+4. Attaches the verified ZIP files to the GitHub Release.
 5. Submits Chrome and Firefox when their publishing switches are enabled.
-6. Keeps the Opera ZIP ready for manual upload.
 
-Opera currently documents a signed-in web upload process and does not provide
-an official publishing API. For that reason, the release workflow never
-attempts to automate Opera account access.
+Opera is not supported as a separate listing. Opera users should install the
+Chrome Web Store version through Opera's Chromium extension support.
 
 ## GitHub environment
 
@@ -74,16 +72,6 @@ Actions > Variables`:
 The workflow submits the package as a listed update and includes the release
 notes and reviewer notes from `docs/amo-metadata.json`.
 
-## Opera release step
-
-After GitHub finishes the release workflow:
-
-1. Open the published GitHub Release.
-2. Download `Grandma-Guard-Opera-VERSION.zip`.
-3. Sign in to the Opera extension developer portal.
-4. Upload the ZIP as the new version.
-5. Submit it for Opera review.
-
 ## Publishing a release
 
 Before publishing:
@@ -96,7 +84,7 @@ Before publishing:
 4. Run `tools/Build-Source-Archive.ps1`.
 5. Merge the validated changes into `main`.
 6. Create a GitHub Release whose tag exactly matches the manifest version with
-   a leading `v`, such as `v1.0.1`.
+   a leading `v`, such as `v1.3.0`.
 
 Publishing the release starts the store workflow. Draft releases do not deploy.
 

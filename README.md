@@ -45,28 +45,36 @@ browser-based scams.
 | --- | --- | --- |
 | Firefox | Published | [Install from Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/grandma-guard/) |
 | Chrome | Release package | [Download from GitHub Releases](https://github.com/NokaAngel/Grandma-Guard/releases) |
-| Opera | Release package | [Download from GitHub Releases](https://github.com/NokaAngel/Grandma-Guard/releases) |
 
-Every GitHub Release includes verified Chrome, Firefox, and Opera packages plus
-a complete source archive. Firefox uses its own Manifest V3 background
+Every GitHub Release includes verified Chrome and Firefox packages plus a
+complete source archive. Firefox uses its own Manifest V3 background
 configuration and stable add-on ID.
 
-## What's new in 1.0.1
+Opera is not listed separately. Opera users should install the Chrome Web Store
+version.
 
-Version 1.0.1 is a maintenance and transparency release:
+## What's new in 2.0.0
 
-- Provides the complete readable source under the MIT License
-- Adds reproducible build and package-validation instructions
-- Aligns the Chrome, Firefox, and Opera source trees
-- Keeps the same browser permissions and privacy behavior
-- Adds no telemetry, remote code, or data collection
+Version 2.0.0 is a major update while staying fully local:
 
-Detection behavior is unchanged from version 1.0.0.
+- Toolbar popup dashboard with weekly protection counts
+- Link click, hover, paste, and short-link warnings
+- Navigation guard for family blocklist and remembered bad link domains
+- Shopping mode, 48-hour after-scam protection, and Grandma preset
+- Expanded webmail support: Gmail, Outlook, Yahoo, Proton, AOL, iCloud, Zoho, Fastmail, and Tuta
+- Plain-language scam tips when reading flagged emails
+- Family blocklist, strict mode with caregiver PIN, and settings export/import
+
+Full release history is in [CHANGELOG.md](CHANGELOG.md). Store version notes for Firefox are in [docs/FIREFOX_RELEASE_NOTES.md](docs/FIREFOX_RELEASE_NOTES.md).
 
 ## What it can detect
 
-- Fake virus, malware, infection, and damaged-device alerts
+- Fake virus, malware, infection, damaged-device, and PC-locked alerts
 - Tech-support scams that pressure someone to call a phone number
+- Scrambled, deep-subdomain, and brand-impersonating hostnames used with scare pages
+- Fake support or report desktop-app downloads and remote-access tool pressure
+- Fake Amazon, PayPal, and bank login or account-verification pages
+- Suspicious links and fake reward or prize emails inside supported webmail (Gmail, Outlook, Proton, Yahoo, AOL, iCloud, Zoho, Fastmail, and Tuta), marked with Possible scam highlights and hover reasons
 - Notification prompts disguised as CAPTCHA or Continue buttons
 - Fake browser, Windows, antivirus, and security update warnings
 - Account-lock and identity-verification phishing
@@ -105,6 +113,7 @@ Grandma Guard performs its analysis inside the browser.
 - No advertising or affiliate tracking is included.
 - No remote JavaScript or downloaded configuration is used.
 - Detection history stays in browser-local storage.
+- Email scam highlights and reasons stay on the device.
 - The user can clear the local detection history at any time.
 
 The extension stores up to 100 blocked hostnames with timestamps and detection
@@ -119,7 +128,7 @@ Read the full [privacy policy](docs/privacy/PRIVACY_POLICY.md).
 - No third-party runtime libraries
 - No remote code execution
 - Manifest V3 browser packages
-- Limited `storage` permission
+- Limited `storage` and `webNavigation` permissions
 - Page access used only for local detection
 - Short-lived, single-use bypass tokens
 - Context-aware false-positive safeguards
@@ -161,15 +170,15 @@ Set-ExecutionPolicy -Scope Process Bypass
 .\tools\Build-Release.ps1 -Browser All
 ```
 
-Use `-Browser Chrome`, `-Browser Firefox`, or `-Browser Opera` to build only
-one package. Omitting `-Browser` builds all three.
+Use `-Browser Chrome` or `-Browser Firefox` to build only one package.
+Omitting `-Browser` builds both.
 
 The release builder:
 
-1. Creates temporary Chrome, Firefox, and Opera staging folders.
+1. Creates temporary Chrome and Firefox staging folders.
 2. Applies the appropriate Chromium or Firefox manifest.
 3. Checks every JavaScript file for syntax errors.
-4. Runs 25 detection regression cases.
+4. Runs the detection and email-link regression suite.
 5. Validates manifest assets and archive paths.
 6. Rejects stale assets, development files, and em dashes.
 7. Writes the verified browser ZIPs to `dist`.
@@ -180,15 +189,14 @@ instructions.
 
 ## Automated releases
 
-Normal pushes and pull requests build and validate all three browser packages.
-Publishing a GitHub Release with a matching version tag, such as `v1.0.1`,
-then:
+Normal pushes and pull requests build and validate the Chrome and Firefox
+packages. Publishing a GitHub Release with a matching version tag, such as
+`v2.0.0`, then:
 
-1. Rebuilds Chrome, Firefox, Opera, and source archives from the tagged code.
-2. Attaches all four verified ZIP files to the GitHub Release.
+1. Rebuilds Chrome, Firefox, and source archives from the tagged code.
+2. Attaches the verified ZIP files to the GitHub Release.
 3. Submits the Chrome package when Chrome publishing is enabled.
 4. Submits the Firefox package to AMO when Firefox publishing is enabled.
-5. Leaves the Opera package on the release for its required manual store upload.
 
 Store credentials are kept in GitHub's encrypted `browser-stores` environment
 and are never committed to the repository. See
@@ -209,7 +217,7 @@ When changing detection behavior:
 1. Add or update a regression case.
 2. Keep legitimate articles and security education pages in the test set.
 3. Run the complete release build.
-4. Confirm that Chrome, Firefox, and Opera still contain the same shared code.
+4. Confirm that Chrome and Firefox still contain the same shared code.
 5. Document any new permission or data-handling behavior.
 
 Security reports should avoid publishing live malicious URLs, personal

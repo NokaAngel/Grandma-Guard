@@ -35,10 +35,9 @@ Build only one browser by changing the target:
 ```powershell
 .\tools\Build-Release.ps1 -Browser Chrome
 .\tools\Build-Release.ps1 -Browser Firefox
-.\tools\Build-Release.ps1 -Browser Opera
 ```
 
-`All` is the default, so this also builds every browser:
+`All` is the default, so this also builds every supported browser:
 
 ```powershell
 .\tools\Build-Release.ps1
@@ -46,9 +45,8 @@ Build only one browser by changing the target:
 
 Depending on the selected target, the script creates:
 
-- `dist/Grandma-Guard-Chrome-1.0.1.zip`
-- `dist/Grandma-Guard-Firefox-1.0.1.zip`
-- `dist/Grandma-Guard-Opera-1.0.1.zip`
+- `dist/Grandma-Guard-Chrome-2.0.0.zip`
+- `dist/Grandma-Guard-Firefox-2.0.0.zip`
 
 ## Build the public source archive
 
@@ -58,7 +56,7 @@ Run:
 .\tools\Build-Source-Archive.ps1
 ```
 
-This creates `dist/Grandma-Guard-GitHub-Source-1.0.1.zip`. The archive
+This creates `dist/Grandma-Guard-GitHub-Source-2.0.0.zip`. The archive
 contains the readable extension source, both browser manifests, tests, build
 tools, policies, documentation, branding, and store artwork. Generated browser
 packages, old releases, Git metadata, dependency folders, and logs are
@@ -69,11 +67,11 @@ excluded.
 Every selected browser build:
 
 1. Reads the shared extension files from `extension`.
-2. Uses `manifest.chromium.json` for Chrome and Opera.
+2. Uses `manifest.chromium.json` for Chrome.
 3. Uses `manifest.firefox.json` for Firefox.
 4. Preserves and verifies Firefox's stable add-on ID.
 5. Checks every JavaScript file for syntax errors.
-6. Runs the 25-case detection regression suite.
+6. Runs the detection and email-link regression suite.
 7. Confirms that every manifest references existing icon files.
 8. Rejects em dashes and stale icon files.
 9. Creates archives with forward-slash paths.
@@ -86,8 +84,9 @@ Every selected browser build:
 - `extension`: canonical source and browser manifests
 - `assets/branding`: project logo files
 - `assets/store`: browser-store artwork
-- `docs/privacy`: shared and browser-specific privacy policies
+- `CHANGELOG.md`: release history for packaged versions
 - `docs`: listing copy, submission guide, and Firefox release notes
+- `docs/privacy`: shared and Chrome-specific privacy policies
 - `tests`: detection-engine regression tests
 - `tools`: release and source-archive scripts
 - `.github`: validation and browser-store release automation

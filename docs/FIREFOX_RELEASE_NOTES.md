@@ -1,19 +1,13 @@
-# Firefox 1.0.1 release notes
+# Firefox 2.0.0 release notes
 
 ## Version notes
 
-Improved project transparency with complete MIT-licensed source code and
-reproducible build documentation. Browser permissions, privacy behavior, and
-protection rules are unchanged.
+Version 2.0.0 is a major update: toolbar popup dashboard, link warnings, navigation guard for family blocklist sites, shopping mode, 48-hour after-scam protection, Grandma preset, expanded webmail support (including Fastmail and Tutanota), email scam tips, and smishing detection. Still fully local with no telemetry, remote code, analytics, or off-device data collection.
 
 ## Reason for the update
 
-Version 1.0.1 is a maintenance and source-transparency update. It provides the
-complete readable source under the MIT License, adds reproducible build
-instructions, and aligns the Firefox package with the reviewed Chrome and Opera
-source trees. It also declares the Firefox desktop and Android versions that
-support Mozilla's built-in no-data collection setting.
+Version 2.0.0 combines the 1.4.0 through 1.6.0 improvements into one release. It adds stronger link protection, family blocklist enforcement before pages load, a toolbar dashboard, and broader webmail coverage while keeping all checks and settings on the device.
 
-This update does not add permissions, remote code, telemetry, analytics, or
-data collection. Detection behavior and the stable Firefox add-on ID are
-unchanged from version 1.0.0.
+This update adds the `webNavigation` permission to block user-configured blocklist and remembered bad link domains before navigation completes. Nothing is transmitted off the device.
+
+The stable Firefox add-on ID is unchanged.

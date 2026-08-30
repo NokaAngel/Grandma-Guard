@@ -14,6 +14,10 @@ document.getElementById('reasons').textContent = reasons.length
   ? reasons.join('; ')
   : 'Suspicious scareware behavior';
 
+const blockTip = document.getElementById('blockTip');
+const strictModeNote = document.getElementById('strictModeNote');
+const continueButton = document.getElementById('continueAnyway');
+
 async function closeCurrentTab() {
   const tab = await extensionApi.tabs.getCurrent();
   if (tab?.id) {
@@ -23,13 +27,79 @@ async function closeCurrentTab() {
 
 document.getElementById('closeTab').addEventListener('click', closeCurrentTab);
 
-document.getElementById('continueAnyway').addEventListener('click', () => {
+continueButton.addEventListener('click', () => {
   if (!token) {
     closeCurrentTab();
     return;
   }
   location.href = `${extensionApi.runtime.getURL('continue.html')}?token=${encodeURIComponent(token)}&host=${encodeURIComponent(hostname)}`;
 });
+
+const markSafeButton = document.getElementById('markSafe');
+markSafeButton.addEventListener('click', async () => {
+  if (!hostname || hostname === 'Unknown website') {
+    return;
+  }
+  markSafeButton.disabled = true;
+  try {
+    const response = await extensionApi.runtime.sendMessage({
+      type: 'mark-host-trusted',
+      hostname
+    });
+    if (response?.ok) {
+      markSafeButton.textContent = 'Added to trusted websites';
+      clearInterval(timer);
+      countdown.textContent = 'Closing this tab…';
+      setTimeout(closeCurrentTab, 1200);
+      return;
+    }
+  } catch {
+    // Fall through to re-enable the button.
+  }
+  markSafeButton.disabled = false;
+});
+
+document.getElementById('activateAfterScam')?.addEventListener('click', async () => {
+  const button = document.getElementById('activateAfterScam');
+  button.disabled = true;
+  try {
+    const response = await extensionApi.runtime.sendMessage({ type: 'activate-after-scam' });
+    if (response?.ok) {
+      button.textContent = 'Extra protection turned on';
+      countdown.textContent = 'Stronger protection is active for 48 hours on this device.';
+    }
+  } catch {
+    button.disabled = false;
+  }
+});
+
+async function loadBlockedPageExtras() {
+  try {
+    const state = await extensionApi.storage.local.get({
+      strictModeEnabled: false,
+      blockedHosts: []
+    });
+    if (state.strictModeEnabled) {
+      strictModeNote.hidden = false;
+    }
+
+    const engine = globalThis.GrandmaGuardDetection;
+    if (engine && typeof engine.pickBlockPageTip === 'function') {
+      blockTip.textContent = engine.pickBlockPageTip(reasons);
+    } else {
+      blockTip.textContent = 'If this warning surprised you, close the tab and ask a family member before doing anything else.';
+    }
+
+    if (engine && typeof engine.isBlockedHost === 'function' &&
+      engine.isBlockedHost(hostname, state.blockedHosts || [])) {
+      continueButton.hidden = true;
+      strictModeNote.hidden = false;
+      strictModeNote.textContent = 'This website is on the family blocklist. Continue is disabled on this device.';
+    }
+  } catch {
+    blockTip.textContent = 'If this warning surprised you, close the tab and ask a family member before doing anything else.';
+  }
+}
 
 let secondsRemaining = 30;
 const countdown = document.getElementById('countdown');
@@ -41,3 +111,5 @@ const timer = setInterval(() => {
     closeCurrentTab();
   }
 }, 1000);
+
+loadBlockedPageExtras();

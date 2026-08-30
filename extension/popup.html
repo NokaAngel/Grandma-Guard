@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grandma Guard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="popup-page">
+  <main class="popup-shell">
+    <header class="popup-header">
+      <img class="popup-logo" src="icons/logo-v2-48.png" alt="">
+      <div>
+        <strong>Grandma Guard</strong>
+        <p id="popupVersion" class="popup-meta"></p>
+      </div>
+    </header>
+
+    <section class="popup-panel" aria-labelledby="popup-summary-title">
+      <h2 id="popup-summary-title">This week on this device</h2>
+      <div id="popupSummary" class="summary-grid"></div>
+      <p id="popupStatus" class="popup-meta"></p>
+    </section>
+
+    <div class="popup-actions">
+      <button id="popupAfterScam" type="button">48-hour extra protection</button>
+      <button id="popupSettings" class="secondary" type="button">Open settings</button>
+    </div>
+  </main>
+  <script src="detection-engine.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
