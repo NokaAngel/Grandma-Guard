@@ -10,6 +10,9 @@
 </p>
 
 <p align="center">
+  <a href="https://chromewebstore.google.com/detail/grandma-guard/lmdflikifdocnikfjcfmgmcaknnpghod">
+    <img src="https://img.shields.io/badge/Chrome-Install-4285F4?logo=googlechrome&logoColor=white" alt="Install Grandma Guard for Chrome">
+  </a>
   <a href="https://addons.mozilla.org/en-US/firefox/addon/grandma-guard/">
     <img src="https://img.shields.io/badge/Firefox-Install-FF7139?logo=firefoxbrowser&logoColor=white" alt="Install Grandma Guard for Firefox">
   </a>
@@ -41,17 +44,15 @@ browser-based scams.
 
 ## Browser availability
 
-| Browser | Status | Install or package |
-| --- | --- | --- |
-| Firefox | Published | [Install from Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/grandma-guard/) |
-| Chrome | Release package | [Download from GitHub Releases](https://github.com/NokaAngel/Grandma-Guard/releases) |
+| Browser | Install |
+| --- | --- |
+| Google Chrome | [Chrome Web Store](https://chromewebstore.google.com/detail/grandma-guard/lmdflikifdocnikfjcfmgmcaknnpghod) |
+| Mozilla Firefox | [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/grandma-guard/) |
+| Opera | Use the [Chrome Web Store](https://chromewebstore.google.com/detail/grandma-guard/lmdflikifdocnikfjcfmgmcaknnpghod) listing in Opera |
 
-Every GitHub Release includes verified Chrome and Firefox packages plus a
-complete source archive. Firefox uses its own Manifest V3 background
-configuration and stable add-on ID.
+Install only from these official browser stores. Verified packages and source archives are also attached to [GitHub Releases](https://github.com/NokaAngel/Grandma-Guard/releases).
 
-Opera is not listed separately. Opera users should install the Chrome Web Store
-version.
+Project website: https://grandmaguard.nokaangel.dev
 
 ## What's new in 2.0.0
 
@@ -141,14 +142,12 @@ system, browser, and trusted security software updated.
 
 ```text
 GrandmaGuard/
-|-- extension/  One shared source tree and two browser manifests
-|-- assets/     Project branding and browser-store artwork
-|-- docs/       Submission notes, listing copy, and privacy policies
+|-- extension/  Shared source tree and browser manifests
+|-- assets/     Branding and store artwork
+|-- docs/       Privacy policies and submission notes
 |-- tests/      Detection-engine regression tests
-|-- tools/      Release and source-archive scripts
-|-- .github/    Validation and browser-store release automation
-|-- dist/       Generated packages, ignored by Git
-|-- BUILDING.md Reproducible build instructions
+|-- tools/      Build scripts
+|-- BUILDING.md Build instructions
 `-- LICENSE     MIT License
 ```
 
@@ -156,12 +155,6 @@ GrandmaGuard/
 
 Grandma Guard does not require npm packages, a bundler, minification, or network
 access during the build.
-
-Reference environment:
-
-- Windows 11 Pro, build 26200
-- Windows PowerShell 5.1
-- Node.js 24.18.0
 
 From the repository root:
 
@@ -171,37 +164,8 @@ Set-ExecutionPolicy -Scope Process Bypass
 ```
 
 Use `-Browser Chrome` or `-Browser Firefox` to build only one package.
-Omitting `-Browser` builds both.
 
-The release builder:
-
-1. Creates temporary Chrome and Firefox staging folders.
-2. Applies the appropriate Chromium or Firefox manifest.
-3. Checks every JavaScript file for syntax errors.
-4. Runs the detection and email-link regression suite.
-5. Validates manifest assets and archive paths.
-6. Rejects stale assets, development files, and em dashes.
-7. Writes the verified browser ZIPs to `dist`.
-8. Removes the temporary staging folders automatically.
-
-See [BUILDING.md](BUILDING.md) for complete build and source-archive
-instructions.
-
-## Automated releases
-
-Normal pushes and pull requests build and validate the Chrome and Firefox
-packages. Publishing a GitHub Release with a matching version tag, such as
-`v2.0.0`, then:
-
-1. Rebuilds Chrome, Firefox, and source archives from the tagged code.
-2. Attaches the verified ZIP files to the GitHub Release.
-3. Submits the Chrome package when Chrome publishing is enabled.
-4. Submits the Firefox package to AMO when Firefox publishing is enabled.
-
-Store credentials are kept in GitHub's encrypted `browser-stores` environment
-and are never committed to the repository. See
-[Automated browser-store deployment](docs/DEPLOYMENT.md) for the one-time
-setup and release checklist.
+See [BUILDING.md](BUILDING.md) for the reference environment and full steps.
 
 ## Reviewing or contributing
 
