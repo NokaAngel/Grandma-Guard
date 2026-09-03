@@ -180,7 +180,7 @@
       label: 'requires a download to view a supposed report',
       weight: 5,
       categories: ['claim', 'action', 'download'],
-      pattern: /\b(?:view|open|read|access)\s+(?:your\s+)?(?:report|scan\s+results?|security\s+report)\b.{0,100}\b(?:download|install)\b|\b(?:download|install)\b.{0,100}\b(?:view|open|read|access)\s+(?:your\s+)?(?:report|scan\s+results?|security\s+report)\b/i
+      pattern: /\b(?:view|open|read|access)\s+(?:your\s+)?(?:(?:security|virus|malware|threat|infection)\s+(?:report|scan\s+results?)|report)\b.{0,100}\b(?:download|install)\b|\b(?:download|install)\b.{0,100}\b(?:view|open|read|access)\s+(?:your\s+)?(?:(?:security|virus|malware|threat|infection)\s+(?:report|scan\s+results?)|report)\b/i
     },
     {
       id: 'fake-update',
@@ -209,7 +209,7 @@
       label: 'urgently requests account verification or sign-in',
       weight: 5,
       categories: ['action', 'credential'],
-      pattern: /\b(?:verify|confirm|restore|unlock|secure)\s+(?:your\s+)?(?:account|identity)\b|\bsign\s+in\s+(?:now\s+)?to\s+(?:verify|restore|unlock|secure)\b|\blog\s*in\s+to\s+(?:your\s+)?(?:account|amazon|paypal|bank)\b/i
+      pattern: /\b(?:verify|confirm|restore|unlock|secure)\s+(?:your\s+)?(?:account|identity)\b.{0,80}\b(?:now|immediately|urgent|suspended|locked|unusual|within\s+\d+\s+(?:hours|days))\b|\b(?:account|identity)\s+(?:has\s+been|is)\s+(?:locked|suspended|compromised)\b.{0,80}\b(?:verify|confirm|sign\s+in)\b|\blog\s*in\s+to\s+(?:your\s+)?(?:account|amazon|paypal|bank)\b/i
     },
     {
       id: 'do-not-close',
@@ -220,16 +220,8 @@
     }
   ];
 
-  const OFFICIAL_SUFFIXES = [
-    'microsoft.com', 'windows.com', 'google.com', 'support.google.com',
-    'mcafee.com', 'norton.com', 'apple.com', 'mozilla.org',
-    'bing.com', 'duckduckgo.com',
-    'amazon.com', 'amazon.co.uk', 'paypal.com', 'paypal.me',
-    'netflix.com', 'chase.com', 'wellsfargo.com', 'bankofamerica.com',
-    'citi.com', 'citibank.com', 'americanexpress.com', 'amex.com',
-    // Code/docs hosts often quote malware wording; never full-page block them.
-    // Do not include github.io - that suffix is commonly abused for phishing.
-    'github.com', 'githubusercontent.com', 'githubassets.com', 'github.dev'
+  const OFFICIAL_SUFFIXES_FALLBACK = [
+    'microsoft.com', 'google.com', 'apple.com', 'amazon.com', 'paypal.com', 'github.com'
   ];
 
   const MAIL_HOST_SUFFIXES = [
@@ -395,9 +387,28 @@
     return hostname === suffix || hostname.endsWith(`.${suffix}`);
   }
 
+  function officialSuffixes() {
+    const packs = globalThis.GrandmaGuardRulePacks;
+    if (packs && typeof packs.allOfficialSuffixes === 'function') {
+      const suffixes = packs.allOfficialSuffixes();
+      if (Array.isArray(suffixes) && suffixes.length > 0) {
+        return suffixes;
+      }
+    }
+    return OFFICIAL_SUFFIXES_FALLBACK.slice();
+  }
+
+  function extraBadHostFragments() {
+    const packs = globalThis.GrandmaGuardRulePacks;
+    if (packs && typeof packs.allBadHostFragmentsExtra === 'function') {
+      return packs.allBadHostFragmentsExtra();
+    }
+    return [];
+  }
+
   function isOfficialHost(hostname) {
     const value = String(hostname || '').toLowerCase();
-    return OFFICIAL_SUFFIXES.some((suffix) => suffixMatches(value, suffix));
+    return officialSuffixes().some((suffix) => suffixMatches(value, suffix));
   }
 
   function isMailHost(hostname) {
@@ -739,12 +750,12 @@
     reasons.push(...learned.reasons);
 
     const ctx = resolveProtectionContext(input);
-    const linkThreshold = Math.max(3, 4 - ctx.thresholdReduction);
+    const linkThreshold = Math.max(4, 5 - ctx.thresholdReduction);
 
     const suspicious = Boolean(
       learned.score > 0 ||
       host.brandLookalike ||
-      (score >= 3 && host.score >= 1) ||
+      (score >= 4 && host.score >= 2) ||
       score >= linkThreshold
     );
 
@@ -883,6 +894,7 @@
       strictModeEnabled: Boolean(state.strictModeEnabled),
       shoppingModeEnabled: Boolean(state.shoppingModeEnabled),
       autoAfterScamOnContinue: state.autoAfterScamOnContinue !== false,
+      remoteRulePackEnabled: state.remoteRulePackEnabled !== false,
       afterScamUntil: Number(state.afterScamUntil) || 0,
       trustedHosts: Array.isArray(state.trustedHosts) ? state.trustedHosts.slice().sort() : [],
       blockedHosts: Array.isArray(state.blockedHosts) ? state.blockedHosts.slice().sort() : [],
@@ -910,6 +922,9 @@
     }
     if (typeof payload.autoAfterScamOnContinue === 'boolean') {
       next.autoAfterScamOnContinue = payload.autoAfterScamOnContinue;
+    }
+    if (typeof payload.remoteRulePackEnabled === 'boolean') {
+      next.remoteRulePackEnabled = payload.remoteRulePackEnabled;
     }
     if (Number.isFinite(Number(payload.afterScamUntil))) {
       next.afterScamUntil = Number(payload.afterScamUntil);
@@ -961,7 +976,8 @@
       return false;
     }
     const compact = value.replace(/^www\./, '');
-    return BUNDLED_BAD_HOST_FRAGMENTS.some((fragment) => compact.includes(fragment));
+    const fragments = BUNDLED_BAD_HOST_FRAGMENTS.concat(extraBadHostFragments());
+    return fragments.some((fragment) => compact.includes(fragment));
   }
 
   function pickEmailScamTip(kind, reasons) {
@@ -1978,7 +1994,8 @@
     let block = false;
     if ((!articleOnly && !explanatoryContext) || takeoverPlacement) {
       block = (
-        score >= mainThreshold && crossCategoryCore && environmentalEvidence && matchedSignals.length >= 2
+        score >= mainThreshold && crossCategoryCore && environmentalEvidence &&
+        (matchedSignals.length >= 2 || (matchedSignals.length >= 1 && host.score >= 2))
       ) || (
         score >= highPrecisionThreshold && highPrecisionMatch && !likelyArticle && !explanatoryContext
       ) || (
@@ -2042,6 +2059,43 @@
     return false;
   }
 
+  function isHarmlessJavascriptHref(value) {
+    const payload = String(value || '').replace(/^javascript:/i, '').trim();
+    if (!payload) {
+      return true;
+    }
+    const normalized = payload.replace(/;+\s*$/, '').replace(/\s+/g, ' ').trim().toLowerCase();
+    if (!normalized) {
+      return true;
+    }
+    return /^(?:void\s*\(\s*(?:0|undefined|null)\s*\)|(?:return\s+)?(?:false|true|null|undefined)|history\.(?:back|go)\([^)]*\))$/i.test(normalized);
+  }
+
+  function javascriptHrefLooksMalicious(value) {
+    const payload = String(value || '').replace(/^javascript:/i, '').trim();
+    if (!payload) {
+      return false;
+    }
+    return /(?:eval\s*\(|new\s+function\b|document\.(?:write|cookie|location)|window\.(?:location|open)|\.(?:src|href)\s*=|fromcharcode|atob\s*\(|unescape\s*\()/i.test(payload);
+  }
+
+  function shouldBlockJavascriptHref(value, options = {}) {
+    const href = String(value || '').trim();
+    if (!/^javascript:/i.test(href)) {
+      return false;
+    }
+    if (isHarmlessJavascriptHref(href)) {
+      return false;
+    }
+    if (javascriptHrefLooksMalicious(href)) {
+      return true;
+    }
+    if (options.mailContext) {
+      return true;
+    }
+    return false;
+  }
+
   return {
     analyze,
     analyzeHostname,
@@ -2065,6 +2119,9 @@
     looksLikeShoppingPage,
     mergeLearnedBadLinkHosts,
     removeLearnedBadLinkHosts,
+    isHarmlessJavascriptHref,
+    javascriptHrefLooksMalicious,
+    shouldBlockJavascriptHref,
     AFTER_SCAM_DURATION_MS,
     extractEmailAddress,
     mergeLearnedMailPatterns,

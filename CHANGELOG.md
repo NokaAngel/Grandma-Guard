@@ -2,6 +2,56 @@
 
 All notable changes to Grandma Guard are documented in this file.
 
+## 2.1.0 - 2026-09-02
+
+### Added
+
+- GitHub-hosted domain rule packs for official/trusted business domains
+- Ed25519 signatures for bundled and remote rule packs (unsigned remote packs rejected)
+- Bundled `data/rule-packs.json` copied into each release build
+- Optional background refresh every 48 hours from `NokaAngel/Grandma-Guard` on GitHub
+- Options controls to enable GitHub updates, refresh now, and view list status
+
+### Changed
+
+- Official domain lists moved out of hardcoded JavaScript into versioned JSON rule packs
+- Remote updates are additive only and never remove bundled core protection
+
+### Packages
+
+- `Grandma-Guard-Chrome-2.1.0.zip`
+- `Grandma-Guard-Firefox-2.1.0.zip`
+
+## 2.0.2 - 2026-09-02
+
+### Fixed
+
+- Harmless `javascript:void(0)` and similar no-op links work again on normal websites
+- Still blocks executable `javascript:` links in webmail and when the payload looks malicious
+- Walmart, Target, Costco, and other major retailer domains are treated as official sites
+- Reduced false alarms on help pages and identity verification sites such as idscan.net
+- Trap guard no longer treats every low-score page as risky; requires stronger evidence
+- Link warnings need a higher score before interrupting clicks or hovers
+
+### Packages
+
+- `Grandma-Guard-Chrome-2.0.2.zip`
+- `Grandma-Guard-Firefox-2.0.2.zip`
+
+## 2.0.1 - 2026-08-30
+
+### Fixed
+
+- Webmail scam pills align more reliably in Gmail, Outlook, Yahoo, and other providers
+- Pills prefer the subject column when the sender row has an avatar so labels do not break list layout
+- Open-email warnings, tips, and Not a scam now share one aligned action bar below the subject
+- Improved sender and subject selectors for Outlook, Proton, and newer webmail layouts
+
+### Packages
+
+- `Grandma-Guard-Chrome-2.0.1.zip`
+- `Grandma-Guard-Firefox-2.0.1.zip`
+
 ## 2.0.0 - 2026-08-29
 
 ### Added

@@ -205,6 +205,8 @@ foreach ($definition in $selectedBrowserDefinitions) {
   Assert-BrowserManifest $definition.Title $definition.ManifestPath
 }
 
+& (Join-Path $PSScriptRoot "Sync-RulePacks.ps1") -NodeExecutable $NodeExecutable
+
 $javascriptFiles = Get-ChildItem `
   -LiteralPath $extensionRoot `
   -Filter *.js `

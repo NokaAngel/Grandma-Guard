@@ -3,7 +3,9 @@ dist/
 node_modules/
 app/config/store-status.cache.json
 GrandmaGuard Website/
-.DS_Store
+.rule-pack-private.pem
+*.pem
+!data/rule-pack-public.pem
 Thumbs.db
 *.log
 .cursor/

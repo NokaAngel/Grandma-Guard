@@ -16,6 +16,7 @@
   const SEVERITY_MARK = 'data-grandma-guard-severity';
   const FROM_FADED_CLASS = 'grandma-guard-from-faded';
   const PILL_CLASS = 'grandma-guard-scam-pill';
+  const PILL_HOST_CLASS = 'grandma-guard-pill-host';
   const LEGACY_FROM_HOST_CLASS = 'grandma-guard-from-host';
   const LEGACY_FROM_FADE_CLASS = 'grandma-guard-from-fade';
   const LEGACY_OVERLAY_CLASS = 'grandma-guard-scam-overlay';
@@ -73,6 +74,11 @@
       '[data-test-id="subject"]',
       '[data-test-id="email-list-subject"]',
       '[data-test-id*="subject"]',
+      '[data-testid="message-subject"]',
+      '[data-automationid="MessageSubject"]',
+      '[data-automation-id="messageHeaderSubject"]',
+      '[data-automation-id="MessageHeaderSubject"]',
+      '.message-title',
       '.subj',
       'td.subj',
       'div.subj',
@@ -92,7 +98,11 @@
       '[data-test-id="email-list-sender"]',
       '[data-test-id*="sender"]',
       '[data-test-id*="from"]',
+      '[data-testid="message-sender"]',
+      '[data-automationid="MessageSender"]',
+      '[data-automation-id="messageHeaderFrom"]',
       '.yW',
+      '.yX',
       '.from',
       'td.from',
       'div.from',
@@ -190,6 +200,7 @@
       '.btn-msglist',
       '[data-test-id="message-list-item"]',
       '[data-test-id="message-item"]',
+      '[data-automationid="MessageListItem"]',
       '.msglistitem'
     ].join(', '))) {
       return node;
@@ -203,6 +214,7 @@
       '.btn-msglist',
       '[data-test-id="message-list-item"]',
       '[data-test-id="message-item"]',
+      '[data-automationid="MessageListItem"]',
       '.msglistitem'
     ].join(', ')) || node;
   }
@@ -1103,8 +1115,9 @@
         color: inherit !important;
       }
       .${PILL_CLASS} {
-        display: inline-block !important;
-        margin: 0 8px 0 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        margin: 0 !important;
         padding: 2px 9px !important;
         border-radius: 999px !important;
         background: #c45c26 !important;
@@ -1112,12 +1125,33 @@
         font: 600 11px/1.35 system-ui, sans-serif !important;
         letter-spacing: 0.01em !important;
         white-space: nowrap !important;
-        vertical-align: baseline !important;
+        vertical-align: middle !important;
+        line-height: 1.2 !important;
+        flex-shrink: 0 !important;
         pointer-events: none !important;
         user-select: none !important;
         opacity: 1 !important;
         position: static !important;
         z-index: auto !important;
+      }
+      .${PILL_HOST_CLASS} {
+        display: inline-flex !important;
+        align-items: center !important;
+        vertical-align: middle !important;
+        margin: 0 8px 0 0 !important;
+        flex-shrink: 0 !important;
+        max-width: 100% !important;
+      }
+      tr.zA[${ROW_MARK}="1"] .y6,
+      tr.zA[${ROW_MARK}="1"] .yX,
+      div[role="row"].zA[${ROW_MARK}="1"] .y6,
+      [data-automationid="MessageListItem"][${ROW_MARK}="1"],
+      [role="option"][${ROW_MARK}="1"] {
+        align-items: center !important;
+      }
+      tr.zA[${ROW_MARK}="1"] td,
+      div[role="row"].zA[${ROW_MARK}="1"] {
+        vertical-align: middle !important;
       }
       .${PILL_CLASS}[${SEVERITY_MARK}="likely"] {
         background: #9a3412 !important;
@@ -1148,6 +1182,9 @@
         align-items: center !important;
         gap: 8px !important;
         margin: 8px 0 10px !important;
+        clear: both !important;
+        width: 100% !important;
+        max-width: 100% !important;
       }
       #${OPEN_ACTIONS_ID} .${DISMISS_CLASS} {
         display: inline-flex !important;
@@ -1228,7 +1265,7 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        margin: 4px 0 2px;
+        margin: 0;
         padding: 2px 10px;
         border-radius: 999px;
         background: #c45c26;
@@ -1241,7 +1278,8 @@
       }
       .gg-open-scam-tip {
         display: block;
-        margin: 6px 0 10px;
+        flex: 1 1 100%;
+        margin: 0;
         padding: 10px 12px;
         border-left: 3px solid #c45c26;
         border-radius: 8px;
@@ -1358,24 +1396,60 @@
     }
   }
 
+  function senderCellHasAvatar(senderCell) {
+    if (!senderCell) {
+      return false;
+    }
+    return Boolean(senderCell.querySelector([
+      'img',
+      'svg',
+      'picture',
+      '[role="img"]',
+      '[data-test-id*="avatar"]',
+      '[data-testid*="avatar"]',
+      '.avatar',
+      '.AE',
+      '.afV'
+    ].join(', ')));
+  }
+
+  function pickPillAnchorCell(senderCell, subjectCell, row) {
+    if (subjectCell && (senderCellHasAvatar(senderCell) || !senderCell)) {
+      return subjectCell;
+    }
+    if (senderCell) {
+      return senderCell;
+    }
+    return subjectCell || row;
+  }
+
   function placePill(row, pill, senderCell, subjectCell) {
-    // Prefer the From column so badges sit beside sender names, matching store screenshots.
-    if (senderCell && !senderCell.querySelector?.('img, svg, [data-test-id*="avatar"]')) {
-      if (pill.parentElement !== senderCell || senderCell.firstChild !== pill) {
-        senderCell.insertBefore(pill, senderCell.firstChild);
+    const anchorCell = pickPillAnchorCell(senderCell, subjectCell, row);
+    if (!anchorCell || anchorCell === row) {
+      if (pill.parentElement !== row) {
+        row.append(pill);
       }
-      return 'sender';
+      return 'row';
     }
-    if (subjectCell) {
-      if (pill.parentElement !== subjectCell || subjectCell.firstChild !== pill) {
-        subjectCell.insertBefore(pill, subjectCell.firstChild);
+
+    let host = null;
+    for (const child of Array.from(anchorCell.children)) {
+      if (child.classList?.contains(PILL_HOST_CLASS)) {
+        host = child;
+        break;
       }
-      return 'subject';
     }
-    if (pill.parentElement !== row) {
-      row.append(pill);
+    if (!host) {
+      host = document.createElement('span');
+      host.className = PILL_HOST_CLASS;
+      if (anchorCell.firstChild) {
+        anchorCell.insertBefore(host, anchorCell.firstChild);
+      } else {
+        anchorCell.append(host);
+      }
     }
-    return 'row';
+    host.append(pill);
+    return anchorCell === subjectCell ? 'subject' : 'sender';
   }
 
   function removeLegacyListSummary() {
@@ -1383,12 +1457,10 @@
   }
 
   function clearStrayNotScamButtons() {
-    const mount = findOpenNotScamMount(null);
+    const readingRoot = getReadingRoot();
+    const bar = readingRoot ? findOpenActionsBar(readingRoot, null) : null;
     for (const button of Array.from(document.querySelectorAll(`#${OPEN_NOT_SCAM_ID}`))) {
-      const validPlacement = mount?.after &&
-        button.parentElement === mount.parent &&
-        button.previousSibling === mount.after;
-      if (!validPlacement || isInsideMailList(button) || isInsideMessageBody(button)) {
+      if (!bar?.contains(button)) {
         button.remove();
       }
     }
@@ -1404,7 +1476,7 @@
     row.removeAttribute(ROW_MARK);
     row.removeAttribute(SEVERITY_MARK);
     row.removeAttribute('title');
-    for (const node of Array.from(row.querySelectorAll(`.${PILL_CLASS}, .${DISMISS_CLASS}`))) {
+    for (const node of Array.from(row.querySelectorAll(`.${PILL_CLASS}, .${DISMISS_CLASS}, .${PILL_HOST_CLASS}`))) {
       node.remove();
     }
     for (const faded of Array.from(row.querySelectorAll(`.${FROM_FADED_CLASS}`))) {
@@ -1825,6 +1897,50 @@
     return findOpenSubjectAnchor(readingRoot, null);
   }
 
+  function findOpenActionsBar(readingRoot, openMessage) {
+    if (!readingRoot || isInsideMailList(readingRoot)) {
+      return null;
+    }
+
+    const anchor = findOpenSubjectAnchor(readingRoot, openMessage);
+    if (!anchor) {
+      return null;
+    }
+
+    const header = anchor.closest([
+      '[data-test-id="message-header"]',
+      '[data-testid="message-header"]',
+      '[data-automation-id="MessageHeaderContainer"]',
+      '[data-automationid="MessageHeader"]',
+      '.message-header',
+      '.thread-header',
+      '#msg-read .hdr',
+      '.gH',
+      '.ha',
+      'h2.hP'
+    ].join(', ')) || anchor;
+
+    const mountParent = header.parentElement;
+    if (!mountParent || isInsideMailList(mountParent) || isInsideMessageBody(mountParent)) {
+      return null;
+    }
+
+    let bar = document.getElementById(OPEN_ACTIONS_ID);
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = OPEN_ACTIONS_ID;
+    }
+
+    const insertBefore = header.nextSibling;
+    if (bar.parentElement !== mountParent) {
+      mountParent.insertBefore(bar, insertBefore);
+    } else if (bar.previousSibling !== header) {
+      mountParent.insertBefore(bar, insertBefore);
+    }
+
+    return bar;
+  }
+
   function findOpenNotScamMount(openMessage) {
     if (!isReadingPaneVisible()) {
       return null;
@@ -1835,12 +1951,7 @@
       return null;
     }
 
-    const anchor = findOpenSubjectAnchor(readingRoot, openMessage);
-    if (!anchor?.parentElement || isInsideMailList(anchor) || isInsideMessageBody(anchor)) {
-      return null;
-    }
-
-    return { parent: anchor.parentElement, after: anchor };
+    return findOpenActionsBar(readingRoot, openMessage);
   }
 
   function clearOpenNotScamButton() {
@@ -1865,8 +1976,9 @@
       return false;
     }
 
-    const mount = findOpenNotScamMount(openMessage);
-    if (!mount?.parent || !mount.after || isInsideMailList(mount.parent)) {
+    const readingRoot = getReadingRoot();
+    const bar = readingRoot ? findOpenActionsBar(readingRoot, openMessage) : null;
+    if (!bar || isInsideMailList(bar)) {
       return false;
     }
 
@@ -1886,7 +1998,7 @@
       markOpenMessageNotScam(result, openMessage);
     };
 
-    mount.parent.insertBefore(button, mount.after.nextSibling);
+    bar.append(button);
     return true;
   }
 
@@ -1936,35 +2048,41 @@
     }
   }
 
-  function showEmailScamTip(result) {
+  function showEmailScamTip(result, openMessage) {
     if (!result || result.kind === 'link' || typeof detection.pickEmailScamTip !== 'function') {
       return;
     }
     ensureLabelStyles();
-    document.getElementById(OPEN_TIP_ID)?.remove();
+
+    const root = getReadingRoot();
+    const bar = root ? findOpenActionsBar(root, openMessage) : null;
+    if (!bar) {
+      return;
+    }
+
+    bar.querySelector(`#${OPEN_TIP_ID}`)?.remove();
 
     const tip = document.createElement('p');
     tip.id = OPEN_TIP_ID;
     tip.className = 'gg-open-scam-tip';
     tip.textContent = detection.pickEmailScamTip(result.kind, result.reasons);
-
-    const root = getReadingRoot();
-    const anchor = root ? findOpenSubjectAnchor(root, null) : null;
-    if (anchor?.parentElement) {
-      anchor.parentElement.insertBefore(tip, anchor.nextSibling);
-    } else if (root) {
-      root.prepend(tip);
-    }
+    bar.append(tip);
   }
 
-  function showLinkOpenWarning(result) {
+  function showLinkOpenWarning(result, openMessage) {
     ensureLabelStyles();
-    clearLegacyOpenActions();
 
-    let badge = document.getElementById(OPEN_BADGE_ID);
+    const root = getReadingRoot();
+    const bar = root ? findOpenActionsBar(root, openMessage) : null;
+    if (!bar) {
+      return;
+    }
+
+    let badge = bar.querySelector(`#${OPEN_BADGE_ID}`);
     if (!badge) {
       badge = document.createElement('div');
       badge.id = OPEN_BADGE_ID;
+      bar.prepend(badge);
     }
 
     const hostname = String(result.hostname || '').trim();
@@ -1972,16 +2090,6 @@
       ? `Suspicious link: ${hostname}`
       : 'Suspicious link inside this email';
     badge.title = Array.isArray(result.reasons) ? result.reasons.join('; ') : 'Suspicious link';
-
-    const root = getReadingRoot();
-    const anchor = root ? findOpenSubjectAnchor(root, null) : null;
-    if (anchor?.parentElement) {
-      anchor.parentElement.insertBefore(badge, anchor.nextSibling);
-    } else if (root) {
-      root.prepend(badge);
-    } else {
-      document.documentElement.append(badge);
-    }
   }
 
   function showOpenBadge(result, openMessage) {
@@ -1991,13 +2099,19 @@
     ensureLabelStyles();
     clearLegacyOpenActions();
 
-    if (result.kind === 'link') {
-      showLinkOpenWarning(result);
+    const root = getReadingRoot();
+    const bar = root ? findOpenActionsBar(root, openMessage) : null;
+    if (!bar) {
       return;
     }
 
+    if (result.kind === 'link') {
+      showLinkOpenWarning(result, openMessage);
+      return;
+    }
+
+    showEmailScamTip(result, openMessage);
     showOpenNotScamButton(result, openMessage);
-    showEmailScamTip(result);
 
     if (isYahooHost()) {
       syncYahooNotScamToolbarOption(result, openMessage);

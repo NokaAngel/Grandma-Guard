@@ -26,11 +26,91 @@ const afterScamStatus = document.getElementById('afterScamStatus');
 const learnedBadLinkList = document.getElementById('learnedBadLinkList');
 const learnedBadLinkEmpty = document.getElementById('learnedBadLinkEmpty');
 const autoAfterScamOnContinueToggle = document.getElementById('autoAfterScamOnContinue');
+const remoteRulePackEnabledToggle = document.getElementById('remoteRulePackEnabled');
+const refreshRulePackButton = document.getElementById('refreshRulePack');
+const rulePackStatus = document.getElementById('rulePackStatus');
 const EXTENSION_VERSION = String(extensionApi.runtime?.getManifest?.().version || '');
 
 let trustedHosts = [];
 let blockedHosts = [];
 let learnedBadLinkHosts = [];
+
+function formatRulePackTimestamp(value) {
+  const timestamp = Number(value) || 0;
+  if (!timestamp) {
+    return 'not yet refreshed on this device';
+  }
+  try {
+    return new Date(timestamp).toLocaleString();
+  } catch {
+    return 'recently';
+  }
+}
+
+async function renderRulePackStatus() {
+  if (!rulePackStatus) {
+    return;
+  }
+  try {
+    const response = await extensionApi.runtime.sendMessage({ type: 'get-rule-pack-status' });
+    if (!response?.ok) {
+      rulePackStatus.textContent = 'Bundled domain lists are active. GitHub status is unavailable right now.';
+      return;
+    }
+    const parts = [
+      `Bundled list version ${response.bundledVersion || 0}.`
+    ];
+    if (response.enabled === false) {
+      parts.push('GitHub updates are turned off.');
+    } else if (response.remoteVersion > 0) {
+      parts.push(
+        `GitHub overlay version ${response.remoteVersion} (${response.officialCount} official domains, ${response.badFragmentCount} extra scam-host patterns).`
+      );
+      parts.push(`Last refreshed ${formatRulePackTimestamp(response.fetchedAt)}.`);
+    } else {
+      parts.push('GitHub overlay has not been applied yet on this device.');
+    }
+    rulePackStatus.textContent = parts.join(' ');
+  } catch {
+    rulePackStatus.textContent = 'Bundled domain lists are active.';
+  }
+}
+
+async function setRemoteRulePackEnabled(enabled) {
+  await extensionApi.storage.local.set({ remoteRulePackEnabled: enabled });
+  if (!enabled && globalThis.GrandmaGuardRulePacks?.clearRemoteCache) {
+    globalThis.GrandmaGuardRulePacks.clearRemoteCache();
+  } else if (enabled) {
+    await extensionApi.runtime.sendMessage({ type: 'refresh-rule-pack' }).catch(() => {});
+  }
+  await renderRulePackStatus();
+  historyStatus.textContent = enabled
+    ? 'GitHub domain list updates enabled.'
+    : 'GitHub domain list updates turned off. Bundled lists still apply.';
+}
+
+async function refreshRulePackNow() {
+  if (!refreshRulePackButton) {
+    return;
+  }
+  refreshRulePackButton.disabled = true;
+  rulePackStatus.textContent = 'Refreshing domain lists from GitHub…';
+  try {
+    const response = await extensionApi.runtime.sendMessage({ type: 'refresh-rule-pack' });
+    if (response?.ok && !response.skipped) {
+      historyStatus.textContent = `Domain lists refreshed to version ${response.version || 'unknown'}.`;
+    } else if (response?.skipped) {
+      historyStatus.textContent = 'Domain lists are already up to date.';
+    } else {
+      historyStatus.textContent = 'Could not refresh domain lists right now. Bundled lists are still active.';
+    }
+  } catch {
+    historyStatus.textContent = 'Could not refresh domain lists right now.';
+  } finally {
+    refreshRulePackButton.disabled = false;
+    await renderRulePackStatus();
+  }
+}
 
 function normalizeHost(value) {
   if (detection && typeof detection.normalizeTrustedHost === 'function') {
@@ -340,7 +420,8 @@ async function load() {
     shoppingModeEnabled = false,
     afterScamUntil = 0,
     learnedBadLinkHosts: savedLearnedBadLinkHosts = [],
-    autoAfterScamOnContinue = true
+    autoAfterScamOnContinue = true,
+    remoteRulePackEnabled = true
   } = await extensionApi.storage.local.get({
     detectionEvents: [],
     learnedMailPatterns: [],
@@ -355,7 +436,8 @@ async function load() {
     shoppingModeEnabled: false,
     afterScamUntil: 0,
     learnedBadLinkHosts: [],
-    autoAfterScamOnContinue: true
+    autoAfterScamOnContinue: true,
+    remoteRulePackEnabled: true
   });
   render(detectionEvents);
   renderWeeklySummary(detectionEvents);
@@ -368,11 +450,15 @@ async function load() {
   renderAfterScam(afterScamUntil);
   renderLearnedBadLinkHosts(savedLearnedBadLinkHosts);
   autoAfterScamOnContinueToggle.checked = autoAfterScamOnContinue !== false;
+  if (remoteRulePackEnabledToggle) {
+    remoteRulePackEnabledToggle.checked = remoteRulePackEnabled !== false;
+  }
+  await renderRulePackStatus();
 
   if (EXTENSION_VERSION && acknowledgedExtensionVersion !== EXTENSION_VERSION) {
     versionNotice.hidden = false;
     versionNoticeText.textContent =
-      `Grandma Guard ${EXTENSION_VERSION} adds a toolbar popup dashboard, bundled scam-host patterns, navigation blocking for family blocklists, the Grandma preset, smishing detection, Fastmail and Tutanota support, and more. Everything still stays on this device.`;
+      `Grandma Guard ${EXTENSION_VERSION} can now fetch additive official-domain updates from GitHub while keeping bundled lists offline. No browsing data is sent. Everything else still stays on this device.`;
   } else {
     versionNotice.hidden = true;
   }
@@ -556,5 +642,15 @@ document.getElementById('clearLearned').addEventListener('click', async () => {
   renderLearning(localMailLearningConsent, [], []);
   historyStatus.textContent = 'Learned email patterns were cleared.';
 });
+
+if (remoteRulePackEnabledToggle) {
+  remoteRulePackEnabledToggle.addEventListener('change', async () => {
+    await setRemoteRulePackEnabled(remoteRulePackEnabledToggle.checked);
+  });
+}
+
+if (refreshRulePackButton) {
+  refreshRulePackButton.addEventListener('click', refreshRulePackNow);
+}
 
 load();

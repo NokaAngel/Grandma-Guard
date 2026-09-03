@@ -142,7 +142,12 @@
       return false;
     }
     const result = detection.analyze(snapshot);
-    return result.score >= 6 || result.block;
+    return result.block || (
+      result.score >= 12 &&
+      Array.isArray(result.categories) &&
+      result.categories.length >= 2 &&
+      (snapshot.largeOverlay || snapshot.fullscreen)
+    );
   }
 
   function evaluateTraps() {

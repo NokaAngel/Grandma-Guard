@@ -112,7 +112,8 @@ Grandma Guard performs its analysis inside the browser.
 - No analytics or telemetry are included.
 - No browsing data is sent to the developer.
 - No advertising or affiliate tracking is included.
-- No remote JavaScript or downloaded configuration is used.
+- Bundled domain rule packs ship with each release; optional GitHub refresh downloads public JSON only (no browsing data sent)
+- No remote JavaScript or downloaded executable configuration is used.
 - Detection history stays in browser-local storage.
 - Email scam highlights and reasons stay on the device.
 - The user can clear the local detection history at any time.

@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
-import "../extension/detection-engine.js";
+import "../extension/rule-packs-data.js";
+import "../extension/rule-packs.js";
+
+await globalThis.GrandmaGuardRulePacks.initBundledPack();
+await import("../extension/detection-engine.js");
 
 const {
   analyze,
@@ -20,6 +24,9 @@ const {
   removeLearnedMailPatterns,
   mergeLearnedBadLinkHosts,
   removeLearnedBadLinkHosts,
+  isOfficialHost,
+  isHarmlessJavascriptHref,
+  shouldBlockJavascriptHref,
   resolveProtectionContext,
   matchesBundledBadHost,
   pickEmailScamTip,
@@ -130,6 +137,8 @@ const cases = [
   ["legitimate update documentation", false, snapshot({ hostname: "mozilla.org", titleText: "Update Firefox", pageText: "Learn how Firefox updates keep your browser secure.", structuredArticle: true })],
   ["official security status page", false, snapshot({ hostname: "microsoft.com", titleText: "Microsoft Security", pageText: "Review security alerts and protection history in Windows Security.", structuredArticle: true })],
   ["official amazon account page", false, snapshot({ hostname: "www.amazon.com", pageText: "Sign in to your Amazon account to view orders and update payment settings." })],
+  ["walmart help center article", false, snapshot({ hostname: "help.walmart.com", titleText: "Verify payment method", pageText: "Sign in to your Walmart account to review saved payment methods and order history.", structuredArticle: true, hasPasswordField: true })],
+  ["identity verification business site", false, snapshot({ hostname: "idscan.net", titleText: "IDScan.net", pageText: "Download our SDK and scan IDs to verify customer identity for your business.", hasPasswordField: true })],
   ["official paypal login page", false, snapshot({ hostname: "www.paypal.com", pageText: "Log in to your PayPal account to send money and update payment information." })],
   ["gmail never full-page blocked", false, snapshot({ hostname: "mail.google.com", pageText: "Your computer has been locked. Call Microsoft support now at 800-555-0199.", largeOverlay: true })],
   ["github code discussing virus scams never blocked", false, snapshot({
@@ -176,6 +185,16 @@ const linkCases = [
     href: "https://news.example/article/garden-tips",
     linkText: "Read more",
     contextText: "This week in the garden newsletter."
+  }],
+  ["walmart help article link", false, {
+    href: "https://help.walmart.com/s/article/account-help",
+    linkText: "Walmart Help",
+    contextText: "Find answers about your Walmart account."
+  }],
+  ["identity verification vendor link", false, {
+    href: "https://idscan.net/products/scanner",
+    linkText: "IDScan",
+    contextText: "Learn about identity verification for your business."
   }],
   ["homoglyph brand link", true, {
     href: "https://paypa\u043B-secure.top/login",
@@ -525,6 +544,14 @@ try {
   assert.ok(analyzeHostname("micros\u043Eft-login.xyz").score >= 2);
   assert.equal(isShortenerHost("bit.ly"), true);
   assert.equal(isShortenerHost("example.com"), false);
+  assert.equal(isOfficialHost("help.walmart.com"), true);
+  assert.equal(isOfficialHost("idscan.net"), true);
+  assert.equal(isHarmlessJavascriptHref("javascript:void(0);"), true);
+  assert.equal(isHarmlessJavascriptHref("javascript:alert(document.cookie)"), false);
+  assert.equal(shouldBlockJavascriptHref("javascript:void(0)", { mailContext: false }), false);
+  assert.equal(shouldBlockJavascriptHref("javascript:void(0)", { mailContext: true }), false);
+  assert.equal(shouldBlockJavascriptHref("javascript:alert(1)", { mailContext: true }), true);
+  assert.equal(shouldBlockJavascriptHref("javascript:window.location='https://evil.test'", { mailContext: false }), true);
   assert.equal(isBlockedHost("evil.scam-host.xyz", ["scam-host.xyz"]), true);
   assert.ok(pickBlockPageTip(["gift card payment required"]).includes("gift cards"));
   const summary = summarizeWeeklyProtection([

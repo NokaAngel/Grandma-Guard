@@ -96,6 +96,17 @@
       <ul id="trustedHostList" class="trusted-list" aria-live="polite"></ul>
       <p id="trustedHostEmpty" class="options-meta">No trusted websites yet.</p>
 
+      <h3 class="options-subtitle">Official domain lists</h3>
+      <p class="options-meta">Grandma Guard ships trusted retailer and support domains with the extension. It can also fetch additive updates from the public <a href="https://github.com/NokaAngel/Grandma-Guard/blob/main/data/rule-packs.json" target="_blank" rel="noopener noreferrer">GitHub rule pack</a>. No browsing data is sent.</p>
+      <label class="options-toggle">
+        <input id="remoteRulePackEnabled" type="checkbox" checked>
+        <span>Use GitHub domain list updates</span>
+      </label>
+      <div class="options-row">
+        <button id="refreshRulePack" class="secondary" type="button">Refresh domain lists now</button>
+      </div>
+      <p id="rulePackStatus" class="options-meta">Checking domain list status…</p>
+
       <h3 class="options-subtitle">Family blocklist</h3>
       <p class="options-meta">Add hostnames that should never use Continue on this device, even with a PIN.</p>
       <div class="options-row trusted-row">
@@ -194,6 +205,8 @@
     <div id="events" class="events" aria-live="polite"></div>
     <p id="historyStatus" class="visually-hidden" aria-live="polite"></p>
   </main>
+  <script src="rule-packs-data.js"></script>
+  <script src="rule-packs.js"></script>
   <script src="detection-engine.js"></script>
   <script src="options.js"></script>
 </body>

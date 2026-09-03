@@ -2,10 +2,15 @@
 
 try {
   if (typeof importScripts === 'function') {
-    importScripts('detection-engine.js');
+    importScripts(
+      'rule-packs-data.js',
+      'rule-packs.js',
+      'detection-engine.js',
+      'rule-pack-sync.js'
+    );
   }
 } catch {
-  // Firefox loads detection-engine.js via background.scripts instead.
+  // Firefox loads background scripts via manifest instead.
 }
 
 const extensionApi = globalThis.browser ?? globalThis.chrome;
@@ -645,6 +650,37 @@ extensionApi.runtime.onMessage.addListener((message, sender, sendResponse) => {
     handleAddBlockedHost(message)
       .then(sendResponse)
       .catch(() => sendResponse({ ok: false }));
+    return true;
+  }
+
+  if (message?.type === 'refresh-rule-pack') {
+    globalThis.GrandmaGuardRulePackSync?.syncRulePack(true)
+      .then(sendResponse)
+      .catch(() => sendResponse({ ok: false, reason: 'sync-error' }));
+    return true;
+  }
+
+  if (message?.type === 'get-rule-pack-status') {
+    extensionApi.storage.local.get({
+      remoteRulePackEnabled: true,
+      remoteRulePackFetchedAt: 0,
+      remoteRulePack: null
+    }).then((state) => {
+      const packs = globalThis.GrandmaGuardRulePacks;
+      sendResponse({
+        ok: true,
+        enabled: state.remoteRulePackEnabled !== false,
+        bundledVersion: packs?.bundledVersion?.() || 0,
+        remoteVersion: packs?.remotePackVersion?.() || Number(state.remoteRulePack?.version) || 0,
+        fetchedAt: Number(state.remoteRulePackFetchedAt) || 0,
+        officialCount: Array.isArray(state.remoteRulePack?.official_suffixes)
+          ? state.remoteRulePack.official_suffixes.length
+          : 0,
+        badFragmentCount: Array.isArray(state.remoteRulePack?.bad_host_fragments_extra)
+          ? state.remoteRulePack.bad_host_fragments_extra.length
+          : 0
+      });
+    }).catch(() => sendResponse({ ok: false }));
     return true;
   }
 

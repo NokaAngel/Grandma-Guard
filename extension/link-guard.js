@@ -187,6 +187,15 @@
       detection.isTrustedHost(hostname, trustedHosts);
   }
 
+  function shouldBlockJavascriptLink(rawHref) {
+    if (typeof detection.shouldBlockJavascriptHref !== 'function') {
+      return /^javascript:/i.test(rawHref);
+    }
+    return detection.shouldBlockJavascriptHref(rawHref, {
+      mailContext: detection.isMailHost(location.hostname)
+    });
+  }
+
   async function resolveShortLink(href) {
     if (resolvedCache.has(href)) {
       return resolvedCache.get(href);
@@ -459,6 +468,9 @@
 
     const rawHref = String(anchor.getAttribute('href') || anchor.href || '').trim();
     if (/^javascript:/i.test(rawHref)) {
+      if (!shouldBlockJavascriptLink(rawHref)) {
+        return;
+      }
       event.preventDefault();
       event.stopPropagation();
       showSchemeWarning(anchor, 'javascript', rawHref.slice(0, 120));

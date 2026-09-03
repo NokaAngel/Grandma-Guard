@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Grandma Guard",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Stops high-confidence fake virus, tech-support, notification-bait, phishing, and forced-update pages.",
   "permissions": [
     "storage",
-    "webNavigation"
+    "webNavigation",
+    "alarms"
   ],
   "host_permissions": [
     "http://*/*",
@@ -13,7 +14,10 @@
   ],
   "background": {
     "scripts": [
+      "rule-packs-data.js",
+      "rule-packs.js",
       "detection-engine.js",
+      "rule-pack-sync.js",
       "background.js"
     ]
   },
@@ -24,6 +28,8 @@
         "https://*/*"
       ],
       "js": [
+        "rule-packs-data.js",
+        "rule-packs.js",
         "detection-engine.js",
         "detector.js",
         "trap-guard.js",
@@ -57,6 +63,8 @@
         "https://app.tuta.com/*"
       ],
       "js": [
+        "rule-packs-data.js",
+        "rule-packs.js",
         "detection-engine.js",
         "mail-guard.js",
         "link-guard.js"
