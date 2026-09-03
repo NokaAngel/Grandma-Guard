@@ -1,7 +1,7 @@
 # Grandma Guard Privacy Policy
 
 Effective date: September 2, 2026  
-Policy revision: 2.1.0
+Policy revision: 2.1.1
 
 Grandma Guard is designed to detect and stop deceptive fake-virus, tech-support, notification-bait, phishing, account-lock, and forced-update web pages. It can also warn about suspicious messages and links inside supported webmail without replacing the inbox.
 
@@ -46,11 +46,23 @@ That download:
 
 When turned off, Grandma Guard continues using the bundled domain list included in the installed extension version.
 
+## Optional false-positive reports
+
+After a blocked page, suspicious link warning, or **Not a scam** action in webmail, Grandma Guard may offer **Suggest for official list**. If you choose it, your browser opens a public GitHub issue form with a pre-filled title and body that can include:
+
+- the report type (website or email);
+- the hostname or sender domain you want reviewed;
+- for email reports, the mail provider hostname (for example `mail.google.com`);
+- the extension version; and
+- the short detection reasons Grandma Guard already showed you.
+
+Grandma Guard does not automatically send email bodies, page text, passwords, browsing history, or detection history. You can edit or cancel the GitHub issue before submitting. Submitting an issue is optional and goes to the public Grandma Guard repository for maintainer review, not to a private developer server.
+
 ## Collection, transmission, and sharing
 
 Grandma Guard does not transmit website content, browsing activity, email content, blocked hostnames, exact addresses, detection history, settings, or analytics to the developer or to any third party. It has no developer-operated server, account system, advertising, telemetry, or remote executable code.
 
-The only optional network request related to protection is the public signed GitHub domain rule pack described above. That request sends no user content.
+The only optional network requests related to protection are the public signed GitHub domain rule pack described above and, if you choose **Suggest for official list**, opening GitHub in your browser to draft a public issue. Neither sends user content automatically.
 
 No user data is sold, shared, rented, or used for advertising, credit decisions, or purposes unrelated to the extension's visible protection features. Humans cannot access the locally stored information through the extension developer.
 
@@ -74,7 +86,7 @@ Users can open Grandma Guard from the browser toolbar popup or Options page to v
 
 All scam-detection logic is bundled with the extension and runs locally on the device. Grandma Guard does not transmit website content, email content, browsing history, or analytics to the developer.
 
-The only optional network request related to protection is the public signed GitHub domain rule pack described above. Before applying a downloaded pack, Grandma Guard verifies an Ed25519 signature using a public key embedded in the extension. Tampered or unsigned remote packs are rejected.
+The only optional network requests related to protection are the public signed GitHub domain rule pack described above and, if you choose **Suggest for official list**, opening GitHub in your browser to draft a public issue. Before applying a downloaded pack, Grandma Guard verifies an Ed25519 signature using a public key embedded in the extension. Tampered or unsigned remote packs are rejected.
 
 ## Changes
 

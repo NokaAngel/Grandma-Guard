@@ -2,6 +2,19 @@
 
 All notable changes to Grandma Guard are documented in this file.
 
+## 2.1.1 - 2026-09-02
+
+### Added
+
+- Optional **Suggest for official list** action on blocked pages, suspicious link warnings, and after marking email as not a scam
+- GitHub issue template for false-positive domain reports (no email body or page content sent automatically)
+- Shared `false-positive-report.js` helper that pre-fills a public GitHub issue with domain, reasons, and extension version only
+
+### Packages
+
+- `Grandma-Guard-Chrome-2.1.1.zip`
+- `Grandma-Guard-Firefox-2.1.1.zip`
+
 ## 2.1.0 - 2026-09-02
 
 ### Added

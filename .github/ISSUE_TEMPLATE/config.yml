@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Grandma Guard support
+    url: https://nokaangel.dev/support?project=grandmaguard
+    about: Questions about Grandma Guard that are not false-positive domain reports

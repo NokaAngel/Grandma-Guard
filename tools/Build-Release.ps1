@@ -223,6 +223,11 @@ if ($LASTEXITCODE -ne 0) {
   throw "Detection regression tests failed."
 }
 
+& $NodeExecutable (Join-Path $projectRoot "tests\false-positive-report.test.mjs")
+if ($LASTEXITCODE -ne 0) {
+  throw "False-positive report tests failed."
+}
+
 $textExtensions = @(".js", ".html", ".css", ".json", ".md", ".ps1", ".mjs")
 Get-ChildItem -LiteralPath $projectRoot -Recurse -File |
   Where-Object {

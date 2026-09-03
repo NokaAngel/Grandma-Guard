@@ -1,8 +1,8 @@
 {
   "version": {
     "release_notes": {
-      "en-US": "Version 2.1.0 adds signed GitHub domain rule packs for faster false-positive fixes, optional public JSON refresh, and updated privacy disclosures. Still no telemetry or remote code."
+      "en-US": "Version 2.1.1 adds optional Suggest for official list on blocked pages, link warnings, and email not-a-scam actions. Opens a pre-filled public GitHub issue with domain and reasons only. Still no telemetry or remote code."
     },
-    "approval_notes": "2.1.0: Signed GitHub rule pack fetch (Ed25519, public JSON only, no user data). alarms permission for refresh schedule. Privacy policy updated. Submitted ZIP is readable unminified source. Support: https://nokaangel.dev/support?project=grandmaguard"
+    "approval_notes": "2.1.1: Optional false-positive report opens GitHub issue (domain/reasons/version only, no email body). Signed GitHub rule pack fetch unchanged. Privacy policy updated. Submitted ZIP is readable unminified source. Support: https://nokaangel.dev/support?project=grandmaguard"
   }
 }

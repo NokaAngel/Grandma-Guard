@@ -36,6 +36,21 @@ continueButton.addEventListener('click', () => {
 });
 
 const markSafeButton = document.getElementById('markSafe');
+const suggestOfficialButton = document.createElement('button');
+suggestOfficialButton.type = 'button';
+suggestOfficialButton.className = 'link-button';
+suggestOfficialButton.id = 'suggestOfficial';
+suggestOfficialButton.textContent = 'Suggest for official list';
+suggestOfficialButton.title = 'Opens GitHub to suggest this domain for review. No page content is sent.';
+suggestOfficialButton.addEventListener('click', () => {
+  globalThis.GrandmaGuardFalsePositiveReport?.openReportUrl({
+    type: 'website',
+    domain: hostname,
+    reasons
+  });
+});
+markSafeButton.insertAdjacentElement('afterend', suggestOfficialButton);
+
 markSafeButton.addEventListener('click', async () => {
   if (!hostname || hostname === 'Unknown website') {
     return;

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Grandma Guard",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Stops high-confidence fake virus, tech-support, notification-bait, phishing, and forced-update pages.",
   "permissions": [
     "storage",
@@ -27,6 +27,7 @@
         "detection-engine.js",
         "detector.js",
         "trap-guard.js",
+        "false-positive-report.js",
         "link-guard.js"
       ],
       "run_at": "document_start",
@@ -60,6 +61,7 @@
         "rule-packs-data.js",
         "rule-packs.js",
         "detection-engine.js",
+        "false-positive-report.js",
         "mail-guard.js",
         "link-guard.js"
       ],

@@ -1,0 +1,68 @@
+name: False positive report
+description: Suggest a legitimate website or email sender domain for the official rule pack
+title: "[False positive] "
+labels:
+  - false-positive
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Grandma Guard. Reports are reviewed manually before any domain is added to the signed official list.
+
+        **Do not paste email bodies, passwords, or personal information.**
+
+  - type: dropdown
+    id: report_type
+    attributes:
+      label: Report type
+      options:
+        - Website
+        - Email
+    validations:
+      required: true
+
+  - type: input
+    id: domain
+    attributes:
+      label: Domain to add to official list
+      description: Business domain suffix, e.g. walmart.com or idscan.net
+      placeholder: example.com
+    validations:
+      required: true
+
+  - type: input
+    id: from_domain
+    attributes:
+      label: Email From domain (email reports only)
+      description: Leave blank for website reports
+      placeholder: notifications.example.com
+
+  - type: input
+    id: mail_host
+    attributes:
+      label: Mail provider host (email reports only)
+      placeholder: mail.google.com
+
+  - type: input
+    id: extension_version
+    attributes:
+      label: Grandma Guard version
+      placeholder: 2.1.1
+
+  - type: textarea
+    id: reasons
+    attributes:
+      label: Why Grandma Guard flagged it
+      description: Paste the reasons shown by Grandma Guard if you have them
+      placeholder: Uses verify account wording; flagged as suspicious link
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Optional note for maintainers
+      description: Short context only. No email body or page content.
+
+  - type: markdown
+    attributes:
+      value: |
+        After approval, a maintainer will open a PR to update `data/rule-packs.json`, sign the pack, and merge to `main`.

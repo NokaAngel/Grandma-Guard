@@ -1255,6 +1255,12 @@
         background: #e8eef7 !important;
         color: #243247 !important;
       }
+      #${UNDO_TOAST_ID} .gg-fp-suggest-link {
+        align-self: center !important;
+        color: #fff !important;
+        font: 700 12px/1.2 system-ui, sans-serif !important;
+        text-decoration: underline !important;
+      }
       .${LEGACY_OVERLAY_CLASS},
       .${LEGACY_LABEL_CLASS}:not(.${PILL_CLASS}):not(.${DISMISS_CLASS}),
       .${LEGACY_FADE_HOST_CLASS} > .${LEGACY_OVERLAY_CLASS} {
@@ -1491,7 +1497,7 @@
     document.getElementById(UNDO_TOAST_ID)?.remove();
   }
 
-  function showUndoToast(fields, hints, previousSticky) {
+  function showUndoToast(fields, hints, previousSticky, reportInput) {
     hideUndoToast();
     ensureLabelStyles();
     pendingSafeUndo = { fields, hints, previousSticky };
@@ -1515,6 +1521,13 @@
     dismissButton.textContent = 'Dismiss';
 
     toastActions.append(undoButton, dismissButton);
+    if (reportInput && globalThis.GrandmaGuardFalsePositiveReport) {
+      globalThis.GrandmaGuardFalsePositiveReport.appendSuggestLink(
+        toastActions,
+        reportInput,
+        'Suggest for everyone'
+      );
+    }
     toast.append(toastText, toastActions);
     toast.addEventListener('click', (event) => {
       const target = event.target;
@@ -1586,7 +1599,15 @@
     } catch {
       // Still offer undo for a local retry path.
     }
-    showUndoToast(fields, hints, previousSticky);
+    const fp = globalThis.GrandmaGuardFalsePositiveReport;
+    const reportInput = fp ? {
+      type: 'email',
+      fromAddress: fields.fromAddress,
+      domain: fp.extractFromDomain(fields.fromAddress),
+      mailHost: location.hostname,
+      reasons: previousSticky?.reasons || result.reasons || []
+    } : null;
+    showUndoToast(fields, hints, previousSticky, reportInput);
     scheduleScan();
   }
 

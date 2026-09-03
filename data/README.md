@@ -39,3 +39,7 @@ Remote packs **must** verify with the embedded public key or they are rejected.
 - `official_suffixes`: lowercase hostname suffixes (`walmart.com`, `help.example.com`)
 - `bad_host_fragments_extra`: optional extra scam-host fragments (additive only)
 - Updates never remove bundled core protection in the extension code
+
+## Community false-positive reports
+
+Users can optionally open a pre-filled GitHub issue from the extension (**Suggest for official list**). Review reports in Issues with the `false-positive` label, then add approved domains here and follow the update steps above.

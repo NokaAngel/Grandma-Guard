@@ -108,6 +108,12 @@
         background: #172033 !important;
         color: #fff !important;
       }
+      #${OVERLAY_ID} .gg-fp-suggest-button {
+        background: transparent !important;
+        color: #0a7658 !important;
+        text-decoration: underline !important;
+        padding-inline: 8px !important;
+      }
       #${HOVER_ID} {
         position: fixed !important;
         z-index: 2147483645 !important;
@@ -382,6 +388,13 @@
     blockDomain.textContent = 'Block this website';
 
     actions.append(back, openOnce, blockDomain);
+    if (globalThis.GrandmaGuardFalsePositiveReport) {
+      globalThis.GrandmaGuardFalsePositiveReport.appendSuggestButton(actions, {
+        type: 'website',
+        domain: hostname,
+        reasons: result.reasons || []
+      });
+    }
     card.append(title, lead, hostLine, reasons, actions);
     overlay.append(card);
 
