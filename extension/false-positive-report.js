@@ -2,6 +2,7 @@
   'use strict';
 
   const REPORT_REPO = 'NokaAngel/Grandma-Guard';
+  const WEB_REPORT_BASE = 'https://grandmaguard.nokaangel.dev/report';
   const MAX_REASONS = 6;
   const MAX_NOTE = 240;
 
@@ -48,7 +49,12 @@
     return list.map((reason) => `- ${String(reason).trim()}`).join('\n');
   }
 
-  function buildReportUrl(input = {}) {
+  function formatReasonsInline(reasons) {
+    const list = Array.isArray(reasons) ? reasons.filter(Boolean).slice(0, MAX_REASONS) : [];
+    return list.length ? list.join('; ') : '';
+  }
+
+  function normalizeReportInput(input = {}) {
     const type = input.type === 'email' ? 'email' : 'website';
     const fromDomain = normalizeDomain(input.fromDomain || '') ||
       extractFromDomain(input.fromAddress || '');
@@ -56,35 +62,71 @@
     if (!domain && type === 'email' && fromDomain) {
       domain = fromDomain;
     }
-    const mailHost = normalizeDomain(input.mailHost || '');
-    const version = String(input.extensionVersion || extensionVersion() || 'unknown').trim();
-    const userNote = String(input.userNote || '').trim().slice(0, MAX_NOTE);
-    const titleDomain = domain || fromDomain || 'unknown-domain';
+    return {
+      type,
+      domain,
+      fromDomain,
+      mailHost: normalizeDomain(input.mailHost || ''),
+      version: String(input.extensionVersion || extensionVersion() || 'unknown').trim(),
+      userNote: String(input.userNote || '').trim().slice(0, MAX_NOTE),
+      reasons: Array.isArray(input.reasons)
+        ? input.reasons.filter(Boolean).slice(0, MAX_REASONS)
+        : []
+    };
+  }
+
+  function buildWebReportUrl(input = {}) {
+    const report = normalizeReportInput(input);
+    const params = new URLSearchParams();
+    params.set('type', report.type);
+    if (report.domain) {
+      params.set('domain', report.domain);
+    }
+    if (report.fromDomain) {
+      params.set('from_domain', report.fromDomain);
+    }
+    if (report.mailHost) {
+      params.set('mail_host', report.mailHost);
+    }
+    params.set('version', report.version);
+    const reasons = formatReasonsInline(report.reasons);
+    if (reasons) {
+      params.set('reasons', reasons);
+    }
+    if (report.userNote) {
+      params.set('note', report.userNote);
+    }
+    return `${WEB_REPORT_BASE}?${params.toString()}`;
+  }
+
+  function buildGitHubReportUrl(input = {}) {
+    const report = normalizeReportInput(input);
+    const titleDomain = report.domain || report.fromDomain || 'unknown-domain';
     const title = `[False positive] ${titleDomain}`;
 
     const lines = [
       '## Report type',
-      type === 'email' ? 'Email' : 'Website',
+      report.type === 'email' ? 'Email' : 'Website',
       '',
       '## Domain to add to official list',
-      domain || '(please fill in the business domain, e.g. example.com)',
+      report.domain || '(please fill in the business domain, e.g. example.com)',
       ''
     ];
 
-    if (type === 'email') {
-      lines.push('## Email From domain (if different)', fromDomain || '(unknown)', '');
-      lines.push('## Mail provider host', mailHost || '(unknown)', '');
+    if (report.type === 'email') {
+      lines.push('## Email From domain (if different)', report.fromDomain || '(unknown)', '');
+      lines.push('## Mail provider host', report.mailHost || '(unknown)', '');
     }
 
     lines.push(
       '## Extension version',
-      version,
+      report.version,
       '',
       '## Why Grandma Guard flagged it',
-      formatReasons(input.reasons),
+      formatReasons(report.reasons),
       '',
       '## Optional note',
-      userNote || '(add context if helpful; do not paste email body or passwords)',
+      report.userNote || '(add context if helpful; do not paste email body or passwords)',
       '',
       '---',
       'Submitted through Grandma Guard optional false-positive report. No email body, page text, or browsing history is included automatically.',
@@ -99,13 +141,65 @@
     return `https://github.com/${REPORT_REPO}/issues/new?${params.toString()}`;
   }
 
-  function openReportUrl(input) {
-    const url = typeof input === 'string' ? input : buildReportUrl(input);
+  /** @deprecated Use buildWebReportUrl or buildGitHubReportUrl */
+  function buildReportUrl(input = {}) {
+    return buildGitHubReportUrl(input);
+  }
+
+  function openUrl(url) {
     if (!url) {
       return false;
     }
     window.open(url, '_blank', 'noopener,noreferrer');
     return true;
+  }
+
+  function openWebReportUrl(input) {
+    return openUrl(typeof input === 'string' ? input : buildWebReportUrl(input));
+  }
+
+  function openGitHubReportUrl(input) {
+    return openUrl(typeof input === 'string' ? input : buildGitHubReportUrl(input));
+  }
+
+  function openReportUrl(input) {
+    return openWebReportUrl(input);
+  }
+
+  function appendReportActions(container, input, options = {}) {
+    if (!container) {
+      return { primary: null, secondary: null };
+    }
+
+    const report = normalizeReportInput(input);
+    const primaryLabel = options.primaryLabel ||
+      (report.type === 'email' ? 'Report for everyone' : 'Report false positive');
+    const secondaryLabel = options.secondaryLabel || 'GitHub (advanced)';
+
+    const primary = document.createElement('button');
+    primary.type = 'button';
+    primary.className = 'gg-fp-report-button';
+    primary.textContent = primaryLabel;
+    primary.title = 'Opens a simple report form on grandmaguard.nokaangel.dev. No email body or page content is sent automatically.';
+    primary.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openWebReportUrl(input);
+    });
+
+    const secondary = document.createElement('button');
+    secondary.type = 'button';
+    secondary.className = 'gg-fp-github-button';
+    secondary.textContent = secondaryLabel;
+    secondary.title = 'Opens GitHub to suggest this domain publicly. Requires a GitHub account.';
+    secondary.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openGitHubReportUrl(input);
+    });
+
+    container.append(primary, secondary);
+    return { primary, secondary };
   }
 
   function appendSuggestLink(container, input, label) {
@@ -114,15 +208,27 @@
     }
     const link = document.createElement('a');
     link.className = 'gg-fp-suggest-link';
-    link.href = buildReportUrl(input);
+    link.href = buildWebReportUrl(input);
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.textContent = label || 'Suggest for official list';
-    link.title = 'Opens GitHub to suggest this domain for review. No email body or page content is sent.';
+    link.textContent = label || 'Report for everyone';
+    link.title = 'Opens a simple report form. No email body or page content is sent automatically.';
     link.addEventListener('click', (event) => {
       event.stopPropagation();
     });
-    container.append(link);
+
+    const github = document.createElement('a');
+    github.className = 'gg-fp-github-link';
+    github.href = buildGitHubReportUrl(input);
+    github.target = '_blank';
+    github.rel = 'noopener noreferrer';
+    github.textContent = 'GitHub';
+    github.title = 'Optional: open a public GitHub issue instead.';
+    github.addEventListener('click', (event) => {
+      event.stopPropagation();
+    });
+
+    container.append(link, github);
     return link;
   }
 
@@ -130,27 +236,27 @@
     if (!container) {
       return null;
     }
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'gg-fp-suggest-button';
-    button.textContent = label || 'Suggest for official list';
-    button.title = 'Opens GitHub to suggest this domain for review. No email body or page content is sent.';
-    button.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      openReportUrl(input);
-    });
-    container.append(button);
-    return button;
+    const wrap = document.createElement('div');
+    wrap.className = 'gg-fp-report-actions';
+    appendReportActions(wrap, input, { primaryLabel: label || 'Report false positive' });
+    container.append(wrap);
+    return wrap;
   }
 
   root.GrandmaGuardFalsePositiveReport = {
     REPORT_REPO,
+    WEB_REPORT_BASE,
+    buildWebReportUrl,
+    buildGitHubReportUrl,
     buildReportUrl,
+    openWebReportUrl,
+    openGitHubReportUrl,
     openReportUrl,
+    appendReportActions,
     appendSuggestLink,
     appendSuggestButton,
     normalizeDomain,
-    extractFromDomain
+    extractFromDomain,
+    normalizeReportInput
   };
 }(typeof globalThis !== 'undefined' ? globalThis : this));

@@ -1255,11 +1255,15 @@
         background: #e8eef7 !important;
         color: #243247 !important;
       }
-      #${UNDO_TOAST_ID} .gg-fp-suggest-link {
+      #${UNDO_TOAST_ID} .gg-fp-suggest-link,
+      #${UNDO_TOAST_ID} .gg-fp-github-link {
         align-self: center !important;
         color: #fff !important;
         font: 700 12px/1.2 system-ui, sans-serif !important;
         text-decoration: underline !important;
+      }
+      #${UNDO_TOAST_ID} .gg-fp-github-link {
+        opacity: 0.88 !important;
       }
       .${LEGACY_OVERLAY_CLASS},
       .${LEGACY_LABEL_CLASS}:not(.${PILL_CLASS}):not(.${DISMISS_CLASS}),

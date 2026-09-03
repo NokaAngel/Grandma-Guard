@@ -42,4 +42,4 @@ Remote packs **must** verify with the embedded public key or they are rejected.
 
 ## Community false-positive reports
 
-Users can optionally open a pre-filled GitHub issue from the extension (**Suggest for official list**). Review reports in Issues with the `false-positive` label, then add approved domains here and follow the update steps above.
+Users can optionally report false positives from the extension (**Report false positive**), which opens `https://grandmaguard.nokaangel.dev/report` and then the private support form. Review submissions, then add approved domains here and follow the update steps above. GitHub issues remain optional for advanced users.

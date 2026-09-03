@@ -108,7 +108,17 @@
         background: #172033 !important;
         color: #fff !important;
       }
-      #${OVERLAY_ID} .gg-fp-suggest-button {
+      #${OVERLAY_ID} .gg-fp-report-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+        width: 100% !important;
+      }
+      #${OVERLAY_ID} .gg-fp-report-button {
+        background: #0a7658 !important;
+        color: #fff !important;
+      }
+      #${OVERLAY_ID} .gg-fp-github-button {
         background: transparent !important;
         color: #0a7658 !important;
         text-decoration: underline !important;
@@ -393,7 +403,7 @@
         type: 'website',
         domain: hostname,
         reasons: result.reasons || []
-      });
+      }, 'Report false positive');
     }
     card.append(title, lead, hostLine, reasons, actions);
     overlay.append(card);

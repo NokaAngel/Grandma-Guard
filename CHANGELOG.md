@@ -2,20 +2,9 @@
 
 All notable changes to Grandma Guard are documented in this file.
 
-## 2.1.1 - 2026-09-02
+## 2.1.2 - 2026-09-02
 
-### Added
-
-- Optional **Suggest for official list** action on blocked pages, suspicious link warnings, and after marking email as not a scam
-- GitHub issue template for false-positive domain reports (no email body or page content sent automatically)
-- Shared `false-positive-report.js` helper that pre-fills a public GitHub issue with domain, reasons, and extension version only
-
-### Packages
-
-- `Grandma-Guard-Chrome-2.1.1.zip`
-- `Grandma-Guard-Firefox-2.1.1.zip`
-
-## 2.1.0 - 2026-09-02
+This release combines the 2.1.x line: signed GitHub rule packs, false-positive reporting, and a website-first report flow that does not require a GitHub account.
 
 ### Added
 
@@ -23,17 +12,38 @@ All notable changes to Grandma Guard are documented in this file.
 - Ed25519 signatures for bundled and remote rule packs (unsigned remote packs rejected)
 - Bundled `data/rule-packs.json` copied into each release build
 - Optional background refresh every 48 hours from `NokaAngel/Grandma-Guard` on GitHub
-- Options controls to enable GitHub updates, refresh now, and view list status
+- Options controls to enable GitHub updates, refresh now, and view list status under **Official domain lists**
+- Optional **Report false positive** on blocked pages, suspicious link warnings, and after marking email as not a scam
+- Website report form at `https://grandmaguard.nokaangel.dev/report` (no GitHub account required)
+- **GitHub (advanced)** optional path for public GitHub issues
+- GitHub issue template for false-positive domain reports
+- Shared `false-positive-report.js` helper and deployable site template at `docs/website-false-positive-report.html`
+- `alarms` permission for optional rule-pack refresh schedule
 
 ### Changed
 
 - Official domain lists moved out of hardcoded JavaScript into versioned JSON rule packs
-- Remote updates are additive only and never remove bundled core protection
+- Remote rule-pack updates are additive only and never remove bundled core protection
+- False-positive reports open the Grandma Guard website form first; support form submission is user-initiated
+
+### Fixed (included from 2.0.2)
+
+- Harmless `javascript:void(0)` and similar no-op links work again on normal websites
+- Still blocks executable `javascript:` links in webmail and when the payload looks malicious
+- Walmart, Target, Costco, and other major retailer domains are treated as official sites
+- Reduced false alarms on help pages and identity verification sites such as idscan.net
+- Trap guard no longer treats every low-score page as risky; requires stronger evidence
+- Link warnings need a higher score before interrupting clicks or hovers
+
+### Privacy
+
+- Policy revision **2.1.2** documents optional GitHub rule-pack fetch, optional false-positive reports, and the `alarms` permission
+- Live policy URL: https://grandmaguard.nokaangel.dev/privacy/
 
 ### Packages
 
-- `Grandma-Guard-Chrome-2.1.0.zip`
-- `Grandma-Guard-Firefox-2.1.0.zip`
+- `Grandma-Guard-Chrome-2.1.2.zip`
+- `Grandma-Guard-Firefox-2.1.2.zip`
 
 ## 2.0.2 - 2026-09-02
 

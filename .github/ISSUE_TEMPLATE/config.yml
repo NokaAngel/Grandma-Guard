@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Report a false positive (no GitHub needed)
+    url: https://grandmaguard.nokaangel.dev/report
+    about: Simple form for suggesting a legitimate domain for the official rule pack
   - name: Grandma Guard support
     url: https://nokaangel.dev/support?project=grandmaguard
-    about: Questions about Grandma Guard that are not false-positive domain reports
+    about: Private support for installation, bugs, and other questions
