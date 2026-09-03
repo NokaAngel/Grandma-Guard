@@ -36,14 +36,18 @@ continueButton.addEventListener('click', () => {
 });
 
 const markSafeButton = document.getElementById('markSafe');
-const reportActions = document.createElement('div');
-reportActions.className = 'gg-fp-report-actions';
-markSafeButton.insertAdjacentElement('afterend', reportActions);
-globalThis.GrandmaGuardFalsePositiveReport?.appendReportActions(reportActions, {
-  type: 'website',
-  domain: hostname,
-  reasons
-});
+const reportButton = globalThis.GrandmaGuardFalsePositiveReport?.appendReportButton(
+  markSafeButton.parentElement,
+  {
+    type: 'website',
+    domain: hostname,
+    reasons
+  },
+  'Report false positive'
+);
+if (reportButton) {
+  markSafeButton.insertAdjacentElement('afterend', reportButton);
+}
 
 markSafeButton.addEventListener('click', async () => {
   if (!hostname || hostname === 'Unknown website') {

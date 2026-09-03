@@ -15,7 +15,7 @@ This release combines the 2.1.x line: signed GitHub rule packs, false-positive r
 - Options controls to enable GitHub updates, refresh now, and view list status under **Official domain lists**
 - Optional **Report false positive** on blocked pages, suspicious link warnings, and after marking email as not a scam
 - Website report form at `https://grandmaguard.nokaangel.dev/report` (no GitHub account required)
-- **GitHub (advanced)** optional path for public GitHub issues
+- **GitHub (advanced)** remains on the website report form only, not in the extension UI
 - GitHub issue template for false-positive domain reports
 - Shared `false-positive-report.js` helper and deployable site template at `docs/website-false-positive-report.html`
 - `alarms` permission for optional rule-pack refresh schedule
@@ -24,7 +24,7 @@ This release combines the 2.1.x line: signed GitHub rule packs, false-positive r
 
 - Official domain lists moved out of hardcoded JavaScript into versioned JSON rule packs
 - Remote rule-pack updates are additive only and never remove bundled core protection
-- False-positive reports open the Grandma Guard website form first; support form submission is user-initiated
+- False-positive reports use one **Report false positive** control that opens the Grandma Guard website form; support form submission is user-initiated
 
 ### Fixed (included from 2.0.2)
 

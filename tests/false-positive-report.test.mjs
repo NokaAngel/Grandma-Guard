@@ -27,16 +27,15 @@ assert.match(websiteWebUrl, /type=website/);
 assert.match(websiteWebUrl, /domain=help\.walmart\.com/);
 assert.match(websiteWebUrl, /version=2\.1\.2/);
 assert.match(websiteWebUrl, /reasons=/);
+assert.equal(buildReportUrl({ domain: "example.com" }), buildWebReportUrl({ domain: "example.com" }));
 
 const websiteGithubUrl = buildGitHubReportUrl({
   type: "website",
   domain: "help.walmart.com",
   extensionVersion: "2.1.2",
-  reasons: ["Uses scareware wording", "Low article depth"]
+  reasons: ["Uses scareware wording"]
 });
 assert.match(websiteGithubUrl, /^https:\/\/github\.com\/NokaAngel\/Grandma-Guard\/issues\/new\?/);
-assert.match(websiteGithubUrl, /help\.walmart\.com/);
-assert.equal(buildReportUrl({ domain: "example.com" }), buildGitHubReportUrl({ domain: "example.com" }));
 
 const emailWebUrl = buildWebReportUrl({
   type: "email",

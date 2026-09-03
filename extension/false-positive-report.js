@@ -141,9 +141,8 @@
     return `https://github.com/${REPORT_REPO}/issues/new?${params.toString()}`;
   }
 
-  /** @deprecated Use buildWebReportUrl or buildGitHubReportUrl */
   function buildReportUrl(input = {}) {
-    return buildGitHubReportUrl(input);
+    return buildWebReportUrl(input);
   }
 
   function openUrl(url) {
@@ -166,81 +165,61 @@
     return openWebReportUrl(input);
   }
 
-  function appendReportActions(container, input, options = {}) {
-    if (!container) {
-      return { primary: null, secondary: null };
-    }
-
+  function defaultLabel(input) {
     const report = normalizeReportInput(input);
-    const primaryLabel = options.primaryLabel ||
-      (report.type === 'email' ? 'Report for everyone' : 'Report false positive');
-    const secondaryLabel = options.secondaryLabel || 'GitHub (advanced)';
+    return report.type === 'email' ? 'Report for everyone' : 'Report false positive';
+  }
 
-    const primary = document.createElement('button');
-    primary.type = 'button';
-    primary.className = 'gg-fp-report-button';
-    primary.textContent = primaryLabel;
-    primary.title = 'Opens a simple report form on grandmaguard.nokaangel.dev. No email body or page content is sent automatically.';
-    primary.addEventListener('click', (event) => {
+  function appendReportButton(container, input, label) {
+    if (!container) {
+      return null;
+    }
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'gg-fp-report-button';
+    button.textContent = label || defaultLabel(input);
+    button.title = 'Opens a short report form. No email body or page content is sent.';
+    button.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
       openWebReportUrl(input);
     });
-
-    const secondary = document.createElement('button');
-    secondary.type = 'button';
-    secondary.className = 'gg-fp-github-button';
-    secondary.textContent = secondaryLabel;
-    secondary.title = 'Opens GitHub to suggest this domain publicly. Requires a GitHub account.';
-    secondary.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      openGitHubReportUrl(input);
-    });
-
-    container.append(primary, secondary);
-    return { primary, secondary };
+    container.append(button);
+    return button;
   }
 
-  function appendSuggestLink(container, input, label) {
+  function appendReportLink(container, input, label) {
     if (!container) {
       return null;
     }
     const link = document.createElement('a');
-    link.className = 'gg-fp-suggest-link';
+    link.className = 'gg-fp-report-link';
     link.href = buildWebReportUrl(input);
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.textContent = label || 'Report for everyone';
-    link.title = 'Opens a simple report form. No email body or page content is sent automatically.';
+    link.textContent = label || defaultLabel(input);
+    link.title = 'Opens a short report form. No email body or page content is sent.';
     link.addEventListener('click', (event) => {
       event.stopPropagation();
     });
-
-    const github = document.createElement('a');
-    github.className = 'gg-fp-github-link';
-    github.href = buildGitHubReportUrl(input);
-    github.target = '_blank';
-    github.rel = 'noopener noreferrer';
-    github.textContent = 'GitHub';
-    github.title = 'Optional: open a public GitHub issue instead.';
-    github.addEventListener('click', (event) => {
-      event.stopPropagation();
-    });
-
-    container.append(link, github);
+    container.append(link);
     return link;
   }
 
+  // Keep older helper names so call sites stay simple.
+  function appendReportActions(container, input, options = {}) {
+    return {
+      primary: appendReportButton(container, input, options.primaryLabel),
+      secondary: null
+    };
+  }
+
+  function appendSuggestLink(container, input, label) {
+    return appendReportLink(container, input, label);
+  }
+
   function appendSuggestButton(container, input, label) {
-    if (!container) {
-      return null;
-    }
-    const wrap = document.createElement('div');
-    wrap.className = 'gg-fp-report-actions';
-    appendReportActions(wrap, input, { primaryLabel: label || 'Report false positive' });
-    container.append(wrap);
-    return wrap;
+    return appendReportButton(container, input, label);
   }
 
   root.GrandmaGuardFalsePositiveReport = {
@@ -252,6 +231,8 @@
     openWebReportUrl,
     openGitHubReportUrl,
     openReportUrl,
+    appendReportButton,
+    appendReportLink,
     appendReportActions,
     appendSuggestLink,
     appendSuggestButton,
