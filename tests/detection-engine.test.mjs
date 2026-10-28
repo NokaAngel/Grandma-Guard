@@ -27,6 +27,7 @@ const {
   isOfficialHost,
   isHarmlessJavascriptHref,
   shouldBlockJavascriptHref,
+  shouldWarnPhoneScheme,
   resolveProtectionContext,
   matchesBundledBadHost,
   pickEmailScamTip,
@@ -551,7 +552,23 @@ try {
   assert.equal(shouldBlockJavascriptHref("javascript:void(0)", { mailContext: false }), false);
   assert.equal(shouldBlockJavascriptHref("javascript:void(0)", { mailContext: true }), false);
   assert.equal(shouldBlockJavascriptHref("javascript:alert(1)", { mailContext: true }), true);
-  assert.equal(shouldBlockJavascriptHref("javascript:window.location='https://evil.test'", { mailContext: false }), true);
+  assert.equal(shouldBlockJavascriptHref("javascript:window.location='https://evil.test'", { mailContext: false }), false);
+  assert.equal(shouldBlockJavascriptHref("javascript:window.location='https://evil.test'", { pageHighRisk: true }), true);
+  assert.equal(shouldWarnPhoneScheme("Call customer support about your account", { mailContext: true }), false);
+  assert.equal(shouldWarnPhoneScheme("Urgent: your Microsoft account is locked. Call support now to verify payment.", { mailContext: true }), true);
+  assert.equal(shouldWarnPhoneScheme("Urgent: your Microsoft account is locked. Call support now to verify payment.", { mailContext: false }), false);
+  assert.equal(globalThis.GrandmaGuardRulePacks.isBlockedHost("dbh01pghubcc738qo100.ironboostlabs.com"), true);
+  assert.equal(globalThis.GrandmaGuardRulePacks.isBlockedHost("www.dbh01pghubcc738qo100.ironboostlabs.com"), false);
+  assert.equal(globalThis.GrandmaGuardRulePacks.isWarnedHost("another.ironboostlabs.com"), true);
+  assert.ok(globalThis.GrandmaGuardRulePacks.matchBlockedUrl("https://rotating.ironboostlabs.com/pibroy92hf/#"));
+  assert.equal(globalThis.GrandmaGuardRulePacks.matchBlockedUrl("https://ironboostlabs.com/unrelated"), null);
+  const campaignLink = analyzeLink({
+    href: "https://rotating.ironboostlabs.com/pibroy92hf/#",
+    linkText: "Open",
+    contextText: ""
+  });
+  assert.equal(campaignLink.suspicious, true);
+  assert.equal(campaignLink.globallyBlocked, true);
   assert.equal(isBlockedHost("evil.scam-host.xyz", ["scam-host.xyz"]), true);
   assert.ok(pickBlockPageTip(["gift card payment required"]).includes("gift cards"));
   const summary = summarizeWeeklyProtection([

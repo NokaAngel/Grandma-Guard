@@ -1,13 +1,13 @@
-# Firefox 2.0.0 release notes
+# Firefox 2.2.0 release notes
 
 ## Version notes
 
-Version 2.0.0 is a major update: toolbar popup dashboard, link warnings, navigation guard for family blocklist sites, shopping mode, 48-hour after-scam protection, Grandma preset, expanded webmail support (including Fastmail and Tutanota), email scam tips, and smishing detection. Still fully local with no telemetry, remote code, analytics, or off-device data collection.
+Version 2.2.0 reduces false positives from legitimate telephone, text-message, and site JavaScript controls. It also adds signed, reviewed exact-host and domain-plus-path threat rules for faster protection against known malicious campaigns. There is still no telemetry, analytics, or remote executable code.
 
 ## Reason for the update
 
-Version 2.0.0 combines the 1.4.0 through 1.6.0 improvements into one release. It adds stronger link protection, family blocklist enforcement before pages load, a toolbar dashboard, and broader webmail coverage while keeping all checks and settings on the device.
+Version 2.2.0 fixes site compatibility problems reported after broader special-link interception. Normal pages may use their own `javascript:`, `tel:`, and `sms:` controls without Grandma Guard blocking them. Phone-link warnings now run only in supported webmail or another high-risk context and require several independent scam indicators.
 
-This update adds the `webNavigation` permission to block user-configured blocklist and remembered bad link domains before navigation completes. Nothing is transmitted off the device.
+The release also adds a narrow reviewed rule for an active rotating malware campaign. Optional threat-list refreshes download signed public JSON from the Grandma Guard GitHub repository. No browsing history, page contents, or personal data are sent, and no downloaded JavaScript is executed.
 
 The stable Firefox add-on ID is unchanged.

@@ -54,17 +54,18 @@ Install only from these official browser stores. Verified packages and source ar
 
 Project website: https://grandmaguard.nokaangel.dev
 
-## What's new in 2.0.0
+## What's new in 2.2.0
 
-Version 2.0.0 is a major update while staying fully local:
+Version 2.2.0 improves protection against reviewed malicious campaigns while
+reducing interference with legitimate websites:
 
-- Toolbar popup dashboard with weekly protection counts
-- Link click, hover, paste, and short-link warnings
-- Navigation guard for family blocklist and remembered bad link domains
-- Shopping mode, 48-hour after-scam protection, and Grandma preset
-- Expanded webmail support: Gmail, Outlook, Yahoo, Proton, AOL, iCloud, Zoho, Fastmail, and Tuta
-- Plain-language scam tips when reading flagged emails
-- Family blocklist, strict mode with caregiver PIN, and settings export/import
+- Signed exact-host, warning-domain, and domain-plus-path threat rules
+- A reviewed block for a reported active `ironboostlabs.com` malware campaign
+- Normal website JavaScript controls no longer trigger broad interception
+- Legitimate telephone and text-message links are no longer blocked by a single nearby keyword
+- Phone-link warnings are limited to supported webmail and require several independent scam signals
+- Official and locally trusted sites bypass special-scheme warnings
+- Public rule updates remain signed JSON data; Grandma Guard never downloads or executes remote JavaScript
 
 Full release history is in [CHANGELOG.md](CHANGELOG.md). Store version notes for Firefox are in [docs/FIREFOX_RELEASE_NOTES.md](docs/FIREFOX_RELEASE_NOTES.md).
 

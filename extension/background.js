@@ -42,6 +42,14 @@ function isBlockedHost(hostname, blockedHosts) {
   return false;
 }
 
+function matchGlobalBlock(value) {
+  const packs = globalThis.GrandmaGuardRulePacks;
+  if (!packs || typeof packs.matchBlockedUrl !== 'function') {
+    return null;
+  }
+  return packs.matchBlockedUrl(value);
+}
+
 async function handleResolveShortLink(message) {
   const href = String(message?.href || '');
   if (!isWebUrl(href)) {
@@ -206,6 +214,9 @@ async function handleContinue(message, sender) {
 
   if (isBlockedHost(decision.hostname, state.blockedHosts)) {
     return { ok: false, reason: 'blocked-host' };
+  }
+  if (matchGlobalBlock(decision.url)) {
+    return { ok: false, reason: 'global-block' };
   }
 
   const remainingDecisions = pending.filter((item) => item.token !== message.token);
@@ -678,6 +689,18 @@ extensionApi.runtime.onMessage.addListener((message, sender, sendResponse) => {
           : 0,
         badFragmentCount: Array.isArray(state.remoteRulePack?.bad_host_fragments_extra)
           ? state.remoteRulePack.bad_host_fragments_extra.length
+          : 0,
+        blockedHostCount: Array.isArray(state.remoteRulePack?.blocked_hosts)
+          ? state.remoteRulePack.blocked_hosts.length
+          : 0,
+        blockedDomainCount: Array.isArray(state.remoteRulePack?.blocked_domains)
+          ? state.remoteRulePack.blocked_domains.length
+          : 0,
+        warnDomainCount: Array.isArray(state.remoteRulePack?.warn_domains)
+          ? state.remoteRulePack.warn_domains.length
+          : 0,
+        blockedUrlPrefixCount: Array.isArray(state.remoteRulePack?.blocked_url_prefixes)
+          ? state.remoteRulePack.blocked_url_prefixes.length
           : 0
       });
     }).catch(() => sendResponse({ ok: false }));
@@ -715,6 +738,21 @@ if (extensionApi.webNavigation?.onBeforeNavigate) {
     });
     const now = Date.now();
     const active = pruneTemporaryState(state, now);
+
+    const globalBlock = matchGlobalBlock(details.url);
+    if (globalBlock) {
+      const params = new URLSearchParams({
+        host: hostname,
+        reasons: [
+          globalBlock.reason || 'This address matches a verified Grandma Guard threat rule',
+          'The global threat list is signed and reviewed before release'
+        ].join('|')
+      });
+      extensionApi.tabs.update(details.tabId, {
+        url: `${extensionApi.runtime.getURL('blocked.html')}?${params}`
+      });
+      return;
+    }
 
     if (typeof globalThis.GrandmaGuardDetection?.isTrustedHost === 'function' &&
       globalThis.GrandmaGuardDetection.isTrustedHost(hostname, state.trustedHosts || [])) {

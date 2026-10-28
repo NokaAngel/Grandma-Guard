@@ -36,7 +36,7 @@ On Gmail, Outlook, Proton, Yahoo, and AOL webmail, Grandma Guard can mark suspic
 
 Family protection settings let you choose Standard or Extra careful mode and keep a trusted websites list on this device.
 
-Grandma Guard has no account, advertising, analytics, telemetry, remote configuration, or developer-operated server. Page content, browsing activity, and email content are not transmitted.
+Grandma Guard has no account, advertising, analytics, telemetry, remote executable code, or developer-operated server. It can optionally download a public, Ed25519-signed domain rule pack from GitHub. Page content, browsing activity, and email content are not transmitted.
 
 Opera users: there is no separate Opera listing. Install Grandma Guard from the Chrome Web Store in Opera.
 
@@ -56,7 +56,7 @@ Expand detection for emerging fake advertisements, notification scams, fake CAPT
 
 Consider optional server-assisted threat intelligence or diagnostic features in a future version.
 
-These future features are not included in version 1.3.0. Any future server communication or data collection would be disclosed before release, documented in an updated privacy policy, and provided with appropriate user controls.
+Any future server-assisted diagnostics or data collection would be disclosed before release, documented in an updated privacy policy, and provided with appropriate user controls. Version 2.2.0 only downloads signed public threat-list data and does not upload browsing data.
 
 ## Chrome Web Store privacy fields
 
@@ -74,7 +74,7 @@ These future features are not included in version 1.3.0. Any future server commu
 
 ## Reviewer notes
 
-Version 1.3.0 adds Family protection settings, trusted websites, and an optional Ko-fi donate link. Learning data and settings stay local and can be cleared in Options.
+Version 2.2.0 improves compatibility with legitimate telephone and site JavaScript controls and adds signed reviewed threat-list entries for exact hosts and narrow campaign URL patterns. Learning data and settings stay local and can be cleared in Options.
 
 The submitted ZIP is already readable unminified source. `tools/Build-Release.ps1 -Browser Firefox` only copies `extension/`, selects `manifest.firefox.json`, validates, and zips. No separate generated-source archive is needed.
 

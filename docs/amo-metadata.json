@@ -1,8 +1,8 @@
 {
   "version": {
     "release_notes": {
-      "en-US": "Version 2.1.2 adds signed GitHub domain rule packs, website-first false-positive reporting (no GitHub account required), optional public rule-pack refresh, and updated privacy disclosures. Still no telemetry or remote code."
+      "en-US": "Version 2.2.0 stops broad interference with legitimate telephone and site JavaScript controls, adds signed reviewed global threat rules, and blocks a rotating malware campaign using narrow host and path indicators. Still no telemetry or remote code."
     },
-    "approval_notes": "2.1.2: Signed GitHub rule pack fetch (Ed25519, public JSON only). Optional false-positive report opens grandmaguard.nokaangel.dev/report then private support form. GitHub optional. alarms permission for refresh schedule. Privacy policy updated. Submitted ZIP is readable unminified source. Support: https://nokaangel.dev/support?project=grandmaguard"
+    "approval_notes": "2.2.0: Signed GitHub rule pack fetch (Ed25519, public JSON data only; no remote executable code). Adds exact-host, warning-domain, and domain-plus-path threat entries. Fixes false positives from tel:, sms:, and legitimate site JavaScript controls. Submitted ZIP is readable unminified source. Support: https://nokaangel.dev/support?project=grandmaguard"
   }
 }

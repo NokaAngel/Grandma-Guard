@@ -12,6 +12,10 @@
 
   const MAX_REMOTE_OFFICIAL_SUFFIXES = 500;
   const MAX_REMOTE_BAD_FRAGMENTS = 200;
+  const MAX_REMOTE_BLOCKED_HOSTS = 500;
+  const MAX_REMOTE_BLOCKED_DOMAINS = 200;
+  const MAX_REMOTE_WARN_DOMAINS = 500;
+  const MAX_REMOTE_BLOCKED_URL_PREFIXES = 200;
   const SIGNATURE_FIELD = 'sig';
   const HOST_SUFFIX_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/;
   const FRAGMENT_PATTERN = /^[a-z0-9][a-z0-9-]{2,39}$/;
@@ -22,11 +26,19 @@
   let bundled = {
     version: 0,
     official_suffixes: [],
-    bad_host_fragments_extra: []
+    bad_host_fragments_extra: [],
+    blocked_hosts: [],
+    blocked_domains: [],
+    warn_domains: [],
+    blocked_url_prefixes: []
   };
 
   let remoteOfficial = [];
   let remoteBadFragments = [];
+  let remoteBlockedHosts = [];
+  let remoteBlockedDomains = [];
+  let remoteWarnDomains = [];
+  let remoteBlockedUrlPrefixes = [];
   let remoteVersion = 0;
 
   function sortValue(value) {
@@ -105,25 +117,29 @@
     }
   }
 
-  function normalizeSuffix(value) {
+  function normalizeHost(value, removeWww = false) {
     const host = String(value || '')
       .trim()
       .toLowerCase()
       .replace(/^https?:\/\//, '')
       .replace(/\/.*$/, '')
-      .replace(/^www\./, '')
       .replace(/:\d+$/, '');
-    if (!host || !HOST_SUFFIX_PATTERN.test(host)) {
+    const normalizedHost = removeWww ? host.replace(/^www\./, '') : host;
+    if (!normalizedHost || !HOST_SUFFIX_PATTERN.test(normalizedHost)) {
       return '';
     }
-    const labels = host.split('.');
+    const labels = normalizedHost.split('.');
     if (labels.length < 2 || labels.some((label) => label.length === 0)) {
       return '';
     }
     if (labels.length === 1 || (labels.length === 2 && labels[1].length <= 2 && labels[0].length <= 3)) {
       return '';
     }
-    return host;
+    return normalizedHost;
+  }
+
+  function normalizeSuffix(value) {
+    return normalizeHost(value, true);
   }
 
   function normalizeFragment(value) {
@@ -140,6 +156,24 @@
     const normalized = [];
     for (const entry of list) {
       const host = normalizeSuffix(entry);
+      if (!host || seen.has(host)) {
+        continue;
+      }
+      seen.add(host);
+      normalized.push(host);
+      if (normalized.length >= cap) {
+        break;
+      }
+    }
+    return normalized.sort();
+  }
+
+  function normalizeHostList(values, cap) {
+    const list = Array.isArray(values) ? values : [];
+    const seen = new Set();
+    const normalized = [];
+    for (const entry of list) {
+      const host = normalizeHost(entry);
       if (!host || seen.has(host)) {
         continue;
       }
@@ -170,13 +204,52 @@
     return normalized.sort();
   }
 
+  function normalizeBlockedUrlPrefixes(values, cap) {
+    const list = Array.isArray(values) ? values : [];
+    const seen = new Set();
+    const normalized = [];
+    for (const entry of list) {
+      const domain = normalizeSuffix(entry?.domain);
+      let pathPrefix = String(entry?.path_prefix || '').trim();
+      const reason = String(entry?.reason || '').trim().slice(0, 160);
+      if (!domain || !pathPrefix.startsWith('/') || pathPrefix.length > 240) {
+        continue;
+      }
+      try {
+        pathPrefix = new URL(pathPrefix, 'https://example.invalid').pathname;
+      } catch {
+        continue;
+      }
+      const key = `${domain}\n${pathPrefix}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      normalized.push({ domain, path_prefix: pathPrefix, reason });
+      if (normalized.length >= cap) {
+        break;
+      }
+    }
+    return normalized.sort((left, right) =>
+      `${left.domain}${left.path_prefix}`.localeCompare(`${right.domain}${right.path_prefix}`)
+    );
+  }
+
   function normalizePack(payload) {
     const version = Number(payload?.version) || 0;
     return {
+      schema: Math.max(1, Math.floor(Number(payload?.schema) || 1)),
       version: version > 0 ? Math.floor(version) : 0,
       updated: String(payload?.updated || '').slice(0, 32),
       official_suffixes: normalizeSuffixList(payload?.official_suffixes, MAX_REMOTE_OFFICIAL_SUFFIXES),
       bad_host_fragments_extra: normalizeFragmentList(payload?.bad_host_fragments_extra, MAX_REMOTE_BAD_FRAGMENTS),
+      blocked_hosts: normalizeHostList(payload?.blocked_hosts, MAX_REMOTE_BLOCKED_HOSTS),
+      blocked_domains: normalizeSuffixList(payload?.blocked_domains, MAX_REMOTE_BLOCKED_DOMAINS),
+      warn_domains: normalizeSuffixList(payload?.warn_domains, MAX_REMOTE_WARN_DOMAINS),
+      blocked_url_prefixes: normalizeBlockedUrlPrefixes(
+        payload?.blocked_url_prefixes,
+        MAX_REMOTE_BLOCKED_URL_PREFIXES
+      ),
       sig: String(payload?.[SIGNATURE_FIELD] || '').trim()
     };
   }
@@ -185,7 +258,11 @@
     const pack = normalizePack(payload);
     return pack.version > 0 && pack.sig && (
       pack.official_suffixes.length > 0 ||
-      pack.bad_host_fragments_extra.length > 0
+      pack.bad_host_fragments_extra.length > 0 ||
+      pack.blocked_hosts.length > 0 ||
+      pack.blocked_domains.length > 0 ||
+      pack.warn_domains.length > 0 ||
+      pack.blocked_url_prefixes.length > 0
     );
   }
 
@@ -208,6 +285,10 @@
     }
     remoteOfficial = pack.official_suffixes.slice();
     remoteBadFragments = pack.bad_host_fragments_extra.slice();
+    remoteBlockedHosts = pack.blocked_hosts.slice();
+    remoteBlockedDomains = pack.blocked_domains.slice();
+    remoteWarnDomains = pack.warn_domains.slice();
+    remoteBlockedUrlPrefixes = pack.blocked_url_prefixes.map((entry) => ({ ...entry }));
     remoteVersion = pack.version;
     return true;
   }
@@ -223,6 +304,10 @@
   function clearRemoteCache() {
     remoteOfficial = [];
     remoteBadFragments = [];
+    remoteBlockedHosts = [];
+    remoteBlockedDomains = [];
+    remoteWarnDomains = [];
+    remoteBlockedUrlPrefixes = [];
     remoteVersion = 0;
   }
 
@@ -239,6 +324,75 @@
       ...bundled.bad_host_fragments_extra,
       ...remoteBadFragments
     ], MAX_REMOTE_BAD_FRAGMENTS + bundled.bad_host_fragments_extra.length);
+  }
+
+  function suffixMatches(hostname, suffix) {
+    return hostname === suffix || hostname.endsWith(`.${suffix}`);
+  }
+
+  function allBlockedHosts() {
+    return normalizeHostList([
+      ...bundled.blocked_hosts,
+      ...remoteBlockedHosts
+    ], MAX_REMOTE_BLOCKED_HOSTS + bundled.blocked_hosts.length);
+  }
+
+  function allBlockedDomains() {
+    return normalizeSuffixList([
+      ...bundled.blocked_domains,
+      ...remoteBlockedDomains
+    ], MAX_REMOTE_BLOCKED_DOMAINS + bundled.blocked_domains.length);
+  }
+
+  function allWarnDomains() {
+    return normalizeSuffixList([
+      ...bundled.warn_domains,
+      ...remoteWarnDomains
+    ], MAX_REMOTE_WARN_DOMAINS + bundled.warn_domains.length);
+  }
+
+  function allBlockedUrlPrefixes() {
+    return normalizeBlockedUrlPrefixes([
+      ...bundled.blocked_url_prefixes,
+      ...remoteBlockedUrlPrefixes
+    ], MAX_REMOTE_BLOCKED_URL_PREFIXES + bundled.blocked_url_prefixes.length);
+  }
+
+  function isBlockedHost(hostname) {
+    const value = String(hostname || '').trim().toLowerCase().replace(/\.$/, '');
+    if (!value) {
+      return false;
+    }
+    if (allBlockedHosts().includes(value)) {
+      return true;
+    }
+    return allBlockedDomains().some((domain) => suffixMatches(value, domain));
+  }
+
+  function isWarnedHost(hostname) {
+    const value = String(hostname || '').trim().toLowerCase().replace(/\.$/, '');
+    return Boolean(value && allWarnDomains().some((domain) => suffixMatches(value, domain)));
+  }
+
+  function matchBlockedUrl(value) {
+    let parsed = null;
+    try {
+      parsed = new URL(value);
+    } catch {
+      return null;
+    }
+    const hostname = parsed.hostname.toLowerCase().replace(/\.$/, '');
+    if (isBlockedHost(hostname)) {
+      return {
+        type: 'host',
+        domain: hostname,
+        path_prefix: '/',
+        reason: 'This website is on Grandma Guard\'s verified global blocklist'
+      };
+    }
+    return allBlockedUrlPrefixes().find((entry) =>
+      suffixMatches(hostname, entry.domain) && parsed.pathname.startsWith(entry.path_prefix)
+    ) || null;
   }
 
   function bundledVersion() {
@@ -267,7 +421,11 @@
       bundled = {
         version: 0,
         official_suffixes: [],
-        bad_host_fragments_extra: []
+        bad_host_fragments_extra: [],
+        blocked_hosts: [],
+        blocked_domains: [],
+        warn_domains: [],
+        blocked_url_prefixes: []
       };
       return false;
     }
@@ -315,6 +473,13 @@
     hydrateRemoteFromStorage,
     allOfficialSuffixes,
     allBadHostFragmentsExtra,
+    allBlockedHosts,
+    allBlockedDomains,
+    allWarnDomains,
+    allBlockedUrlPrefixes,
+    isBlockedHost,
+    isWarnedHost,
+    matchBlockedUrl,
     bundledVersion,
     remotePackVersion,
     normalizeSuffix,

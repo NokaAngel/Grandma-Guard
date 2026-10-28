@@ -45,8 +45,8 @@ Build only one browser by changing the target:
 
 Depending on the selected target, the script creates:
 
-- `dist/Grandma-Guard-Chrome-2.0.0.zip`
-- `dist/Grandma-Guard-Firefox-2.0.0.zip`
+- `dist/Grandma-Guard-Chrome-2.2.0.zip`
+- `dist/Grandma-Guard-Firefox-2.2.0.zip`
 
 ## Build the public source archive
 
@@ -56,7 +56,7 @@ Run:
 .\tools\Build-Source-Archive.ps1
 ```
 
-This creates `dist/Grandma-Guard-GitHub-Source-2.0.0.zip`. The archive
+This creates `dist/Grandma-Guard-GitHub-Source-2.2.0.zip`. The archive
 contains the readable extension source, both browser manifests, tests, build
 tools, policies, documentation, branding, and store artwork. Generated browser
 packages, old releases, Git metadata, dependency folders, and logs are

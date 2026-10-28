@@ -64,7 +64,7 @@ async function renderRulePackStatus() {
       parts.push('GitHub updates are turned off.');
     } else if (response.remoteVersion > 0) {
       parts.push(
-        `GitHub overlay version ${response.remoteVersion} (${response.officialCount} official domains, ${response.badFragmentCount} extra scam-host patterns).`
+        `GitHub overlay version ${response.remoteVersion} (${response.officialCount} official domains, ${response.blockedHostCount || 0} blocked hosts, ${response.blockedUrlPrefixCount || 0} campaign paths, ${response.warnDomainCount || 0} warning domains, and ${response.badFragmentCount} extra scam-host patterns).`
       );
       parts.push(`Last refreshed ${formatRulePackTimestamp(response.fetchedAt)}.`);
     } else {

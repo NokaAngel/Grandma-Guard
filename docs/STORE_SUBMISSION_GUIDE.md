@@ -3,7 +3,7 @@
 ## Chrome Web Store
 
 1. Register or open your Chrome Web Store developer account.
-2. Create a new item and upload `dist/Grandma-Guard-Chrome-2.0.0.zip`.
+2. Upload `dist/Grandma-Guard-Chrome-2.2.0.zip` to the existing Grandma Guard item.
 3. Paste the listing text from `STORE_LISTING.md`.
 4. Upload the screenshots and promo tile from `assets/store/`:
    - `store-screenshot-blocked-1280x800.png`
@@ -17,7 +17,7 @@
 ## Firefox Add-ons
 
 1. Sign in to addons.mozilla.org and submit a new add-on.
-2. Upload `dist/Grandma-Guard-Firefox-2.0.0.zip`.
+2. Upload `dist/Grandma-Guard-Firefox-2.2.0.zip`.
 3. The Firefox manifest already contains a stable Manifest V3 add-on ID and declares that the extension transmits no data.
 4. Paste the listing copy, reviewer notes, version notes, and the text from `docs/privacy/PRIVACY_POLICY.md`.
 5. Upload the store screenshots and icon artwork when requested:

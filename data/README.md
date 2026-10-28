@@ -38,6 +38,10 @@ Remote packs **must** verify with the embedded public key or they are rejected.
 
 - `official_suffixes`: lowercase hostname suffixes (`walmart.com`, `help.example.com`)
 - `bad_host_fragments_extra`: optional extra scam-host fragments (additive only)
+- `blocked_hosts`: reviewed exact hostnames that are stopped before navigation
+- `blocked_domains`: reviewed domain suffixes whose entire domain tree is malicious
+- `warn_domains`: reviewed domain suffixes that add risk without hard blocking
+- `blocked_url_prefixes`: narrow domain-plus-path campaign rules for rotating subdomains
 - Updates never remove bundled core protection in the extension code
 
 ## Community false-positive reports

@@ -62,7 +62,11 @@
         ok: true,
         version: normalized.version,
         officialCount: normalized.official_suffixes.length,
-        badFragmentCount: normalized.bad_host_fragments_extra.length
+        badFragmentCount: normalized.bad_host_fragments_extra.length,
+        blockedHostCount: normalized.blocked_hosts.length,
+        blockedDomainCount: normalized.blocked_domains.length,
+        warnDomainCount: normalized.warn_domains.length,
+        blockedUrlPrefixCount: normalized.blocked_url_prefixes.length
       };
     } catch {
       if (state.remoteRulePack) {

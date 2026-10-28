@@ -18,6 +18,7 @@ $includedFiles = @(
   ".gitattributes",
   ".gitignore",
   "BUILDING.md",
+  "CHANGELOG.md",
   "LICENSE",
   "README.md"
 )
@@ -25,6 +26,7 @@ $includedFiles = @(
 $includedDirectories = @(
   ".github",
   "assets",
+  "data",
   "docs",
   "extension",
   "tests",
@@ -65,7 +67,24 @@ foreach ($relativeDirectory in $includedDirectories) {
   $allFiles += Get-ChildItem -LiteralPath $fullPath -Recurse -File
 }
 
-$allFiles = @($allFiles | Sort-Object FullName -Unique)
+$trackedPaths = @(& git -C $projectRoot ls-files)
+if ($LASTEXITCODE -ne 0 -or $trackedPaths.Count -eq 0) {
+  throw "Unable to read the tracked source-file list from Git."
+}
+$trackedFiles = [System.Collections.Generic.HashSet[string]]::new(
+  [System.StringComparer]::OrdinalIgnoreCase
+)
+foreach ($trackedPath in $trackedPaths) {
+  [void]$trackedFiles.Add($trackedPath.Replace("/", "\"))
+}
+
+$allFiles = @(
+  $allFiles |
+    Where-Object {
+      $trackedFiles.Contains((Get-RelativePath $projectRoot $_.FullName))
+    } |
+    Sort-Object FullName -Unique
+)
 $textExtensions = @(".css", ".html", ".js", ".json", ".md", ".mjs", ".ps1")
 foreach ($file in $allFiles | Where-Object { $_.Extension -in $textExtensions }) {
   if ((Get-Content -Raw -LiteralPath $file.FullName).Contains([char]0x2014)) {
@@ -112,7 +131,9 @@ try {
   }
   foreach ($requiredEntry in @(
     "LICENSE",
+    "CHANGELOG.md",
     "BUILDING.md",
+    "data/rule-packs.json",
     ".github/workflows/ci.yml",
     ".github/workflows/release.yml",
     "docs/DEPLOYMENT.md",

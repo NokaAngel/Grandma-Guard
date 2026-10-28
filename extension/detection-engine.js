@@ -406,6 +406,23 @@
     return [];
   }
 
+  function globalRulePacks() {
+    return globalThis.GrandmaGuardRulePacks || null;
+  }
+
+  function isGloballyWarnedHost(hostname) {
+    const packs = globalRulePacks();
+    return Boolean(packs && typeof packs.isWarnedHost === 'function' && packs.isWarnedHost(hostname));
+  }
+
+  function matchGloballyBlockedUrl(value) {
+    const packs = globalRulePacks();
+    if (!packs || typeof packs.matchBlockedUrl !== 'function') {
+      return null;
+    }
+    return packs.matchBlockedUrl(value);
+  }
+
   function isOfficialHost(hostname) {
     const value = String(hostname || '').toLowerCase();
     return officialSuffixes().some((suffix) => suffixMatches(value, suffix));
@@ -628,6 +645,11 @@
       reasons.push('matches a commonly abused scam-host pattern shipped with Grandma Guard');
     }
 
+    if (isGloballyWarnedHost(value)) {
+      score += 2;
+      reasons.push('matches a reviewed domain warning from Grandma Guard');
+    }
+
     const hostWords = value.replace(/[-.]/g, ' ');
     if (!brandLookalike && /\b(?:tech\s*support)\b/i.test(hostWords)) {
       score += 1;
@@ -698,6 +720,18 @@
         score: 0,
         reasons: [],
         hostname: ''
+      };
+    }
+
+    const globalBlock = matchGloballyBlockedUrl(href);
+    if (globalBlock) {
+      return {
+        suspicious: true,
+        score: 12,
+        reasons: [globalBlock.reason || 'matches a verified global threat rule'],
+        hostname,
+        href,
+        globallyBlocked: true
       };
     }
 
@@ -2087,13 +2121,34 @@
     if (isHarmlessJavascriptHref(href)) {
       return false;
     }
+    const mailContext = options.mailContext === true;
+    const pageHighRisk = options.pageHighRisk === true;
+    if (!mailContext && !pageHighRisk) {
+      return false;
+    }
     if (javascriptHrefLooksMalicious(href)) {
       return true;
     }
-    if (options.mailContext) {
+    if (mailContext) {
       return true;
     }
     return false;
+  }
+
+  function shouldWarnPhoneScheme(contextText, options = {}) {
+    if (options.mailContext !== true && options.pageHighRisk !== true) {
+      return false;
+    }
+    const text = String(contextText || '').slice(0, 2000);
+    const categories = [
+      /\b(?:urgent|immediately|act\s+now|suspend(?:ed)?|locked|final\s+notice)\b/i,
+      /\b(?:irs|social\s+security|microsoft|windows|apple|bank|paypal|security|tech\s+support)\b/i,
+      /\b(?:gift\s*card|crypto|bitcoin|payment|billing|refund|fee|wire\s+transfer)\b/i,
+      /\b(?:prize|winner|won|claim|reward|jackpot)\b/i,
+      /\b(?:call|text|verify|confirm|account|identity|password)\b/i
+    ];
+    const matches = categories.reduce((count, pattern) => count + (pattern.test(text) ? 1 : 0), 0);
+    return matches >= 3;
   }
 
   return {
@@ -2122,6 +2177,7 @@
     isHarmlessJavascriptHref,
     javascriptHrefLooksMalicious,
     shouldBlockJavascriptHref,
+    shouldWarnPhoneScheme,
     AFTER_SCAM_DURATION_MS,
     extractEmailAddress,
     mergeLearnedMailPatterns,

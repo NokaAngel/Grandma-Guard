@@ -1,7 +1,7 @@
 # Grandma Guard Privacy Policy
 
-Effective date: September 2, 2026  
-Policy revision: 2.1.2
+Effective date: October 28, 2026
+Policy revision: 2.2.0
 
 Grandma Guard is designed to detect and stop deceptive fake-virus, tech-support, notification-bait, phishing, account-lock, and forced-update web pages. It can also warn about suspicious messages and links inside supported webmail without replacing the inbox.
 
@@ -17,7 +17,7 @@ For pages that are blocked, or email links that trigger a warning, the extension
 - the detection score and matched reasons; and
 - whether the user selected the one-time Continue option or received an email warning.
 
-Family protection settings are also stored locally, including the chosen protection level (Standard or Extra careful), trusted website hostnames, family blocklist hostnames, remembered suspicious link domains, shopping mode, after-scam protection timers, strict mode and caregiver PIN hash, optional auto after-scam on Continue, optional GitHub domain list preference, and a cached copy of the last verified public domain rule pack (hostname suffixes only).
+Family protection settings are also stored locally, including the chosen protection level (Standard or Extra careful), trusted website hostnames, family blocklist hostnames, remembered suspicious link domains, shopping mode, after-scam protection timers, strict mode and caregiver PIN hash, optional auto after-scam on Continue, optional GitHub domain list preference, and a cached copy of the last verified public domain rule pack (official suffixes, exact blocked hosts, reviewed warning domains, and narrow domain-plus-path threat entries).
 
 On-device email learning is off until you allow it in a one-time inbox prompt or in Grandma Guard settings. If you allow it, the extension may store short local scam-pattern fingerprints from flagged mail, including:
 

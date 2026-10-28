@@ -2,6 +2,35 @@
 
 All notable changes to Grandma Guard are documented in this file.
 
+## 2.2.0 - 2026-10-28
+
+This release improves compatibility with legitimate websites and adds signed global threat rules for fast protection against reviewed malicious domains and rotating campaign URLs.
+
+### Added
+
+- Signed global exact-host, domain-warning, and domain-plus-path threat rules
+- A reviewed block for the reported `dbh01pghubcc738qo100.ironboostlabs.com` host
+- A campaign rule covering rotating `ironboostlabs.com` subdomains using `/pibroy92hf/`
+- Regression coverage for global rules, legitimate telephone links, and site JavaScript controls
+
+### Fixed
+
+- Normal websites can use `javascript:` controls without Grandma Guard intercepting their internal application behavior
+- Legitimate `tel:` and `sms:` links are no longer blocked because of a single nearby word such as support, account, billing, delivery, or claim
+- Phone-link warnings are limited to supported webmail and require several independent scam signals
+- Official and locally trusted sites bypass special-scheme warnings
+
+### Security
+
+- Remote threat data remains public JSON protected by the existing Ed25519 signature
+- Global hard blocks use exact hosts or reviewed domain-and-path combinations instead of broad substring blocking
+- No remotely downloaded JavaScript is executed
+
+### Packages
+
+- `Grandma-Guard-Chrome-2.2.0.zip`
+- `Grandma-Guard-Firefox-2.2.0.zip`
+
 ## 2.1.2 - 2026-09-02
 
 This release combines the 2.1.x line: signed GitHub rule packs, false-positive reporting, and a website-first report flow that does not require a GitHub account.

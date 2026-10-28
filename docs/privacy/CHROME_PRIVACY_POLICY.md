@@ -1,7 +1,7 @@
 # Grandma Guard Privacy Policy for Google Chrome
 
-Effective date: September 2, 2026  
-Policy revision: 2.1.2
+Effective date: October 28, 2026
+Policy revision: 2.2.0
 
 Grandma Guard is designed to detect and stop deceptive fake-virus alerts, tech-support scams, notification traps, phishing pages, account-lock warnings, and forced browser updates. It can also warn about suspicious messages and links inside supported webmail without replacing the inbox.
 
@@ -17,7 +17,7 @@ When a page is blocked, or an email link triggers a warning, Grandma Guard store
 - the detection score and matched reasons; and
 - whether the one-time Continue option was selected or an email warning was shown.
 
-Family protection settings are also stored locally, including the chosen protection level (Standard or Extra careful), trusted website hostnames, family blocklist hostnames, remembered suspicious link domains, shopping mode, after-scam protection timers, strict mode and caregiver PIN hash, optional auto after-scam on Continue, optional GitHub domain list preference, and a cached copy of the last verified public domain rule pack (hostname suffixes only).
+Family protection settings are also stored locally, including the chosen protection level (Standard or Extra careful), trusted website hostnames, family blocklist hostnames, remembered suspicious link domains, shopping mode, after-scam protection timers, strict mode and caregiver PIN hash, optional auto after-scam on Continue, optional GitHub domain list preference, and a cached copy of the last verified public domain rule pack (official suffixes, exact blocked hosts, reviewed warning domains, and narrow domain-plus-path threat entries).
 
 On-device email learning is off until you allow it in a one-time inbox prompt or in Grandma Guard settings. If you allow it, Grandma Guard may store short local scam-pattern fingerprints from flagged mail (sender label, sender-and-From-domain pair, custom From domain that is not a broad free webmail domain, and subject fingerprint), plus “Not a scam” corrections you choose while reading an email, with a short undo window for mistakes. If you decline, it will not learn from your mail unless you later turn learning on in settings. These patterns stay on the device only and can be cleared from the options page. After updates, Grandma Guard may show a one-time on-device version notice. More detail is also published at https://grandmaguard.nokaangel.dev/privacy/.
 

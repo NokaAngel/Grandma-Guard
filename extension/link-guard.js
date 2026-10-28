@@ -193,9 +193,17 @@
       detection.isTrustedHost(hostname, trustedHosts);
   }
 
+  function shouldSkipSpecialScheme() {
+    return detection.isOfficialHost(location.hostname) ||
+      detection.isTrustedHost(location.hostname, trustedHosts);
+  }
+
   function shouldBlockJavascriptLink(rawHref) {
+    if (shouldSkipSpecialScheme()) {
+      return false;
+    }
     if (typeof detection.shouldBlockJavascriptHref !== 'function') {
-      return /^javascript:/i.test(rawHref);
+      return false;
     }
     return detection.shouldBlockJavascriptHref(rawHref, {
       mailContext: detection.isMailHost(location.hostname)
@@ -492,10 +500,13 @@
 
     const telSmsMatch = rawHref.match(/^(tel|sms):([^?#]+)/i);
     if (telSmsMatch) {
-      await refreshLinkSettings();
+      if (shouldSkipSpecialScheme() || !detection.isMailHost(location.hostname)) {
+        return;
+      }
       const context = linkContext(anchor);
-      const smishy = /(?:verify|support|irs|refund|delivery|account|urgent|suspend|locked|billing|crypto|gift|prize|won|claim)/i.test(context);
-      if (smishy) {
+      const shouldWarn = typeof detection.shouldWarnPhoneScheme === 'function' &&
+        detection.shouldWarnPhoneScheme(context, { mailContext: true });
+      if (shouldWarn) {
         event.preventDefault();
         event.stopPropagation();
         showSchemeWarning(anchor, telSmsMatch[1].toLowerCase(), telSmsMatch[2]);
@@ -661,4 +672,15 @@
     }
   }, true);
   document.addEventListener('submit', handleFormSubmit, true);
+
+  refreshLinkSettings().catch(() => {});
+  extensionApi.storage?.onChanged?.addListener?.((changes, area) => {
+    if (area !== 'local') {
+      return;
+    }
+    if (changes.trustedHosts || changes.learnedBadLinkHosts || changes.protectionLevel ||
+      changes.shoppingModeEnabled || changes.afterScamUntil) {
+      refreshLinkSettings().catch(() => {});
+    }
+  });
 })();
